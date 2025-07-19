@@ -5,6 +5,638 @@ import (
 	"testing"
 )
 
+func TestScannerPos(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		actions  []string // "pop", "next", "peek"
+		expected []TextPosition
+	}{
+		{
+			name:     "initial position",
+			input:    "abc",
+			actions:  []string{"pos"},
+			expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
+		},
+		{
+			name:     "after single pop",
+			input:    "abc",
+			actions:  []string{"pop", "pos"},
+			expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
+		},
+		{
+			name:     "after multiple pops",
+			input:    "hello",
+			actions:  []string{"pop", "pop", "pop", "pos"},
+			expected: []TextPosition{{Idx: 3, Line: 1, Col: 4}},
+		},
+		{
+			name:     "after line break",
+			input:    "a\nb",
+			actions:  []string{"pop", "pop", "pos"},
+			expected: []TextPosition{{Idx: 2, Line: 2, Col: 1}},
+		},
+		{
+			name:     "after CR normalization",
+			input:    "a\rb",
+			actions:  []string{"pop", "pop", "pos"},
+			expected: []TextPosition{{Idx: 2, Line: 2, Col: 1}},
+		},
+		{
+			name:     "after CRLF normalization",
+			input:    "a\r\nb",
+			actions:  []string{"pop", "pop", "pos"},
+			expected: []TextPosition{{Idx: 3, Line: 2, Col: 1}},
+		},
+		{
+			name:     "after escaped line break",
+			input:    "a\\\nb",
+			actions:  []string{"pop", "pop", "pos"},
+			expected: []TextPosition{{Idx: 4, Line: 2, Col: 2}},
+		},
+		{
+			name:     "after UTF-8 character",
+			input:    "αβγ",
+			actions:  []string{"pop", "pos"},
+			expected: []TextPosition{{Idx: 2, Line: 1, Col: 2}},
+		},
+		{
+			name:     "peek doesn't change position",
+			input:    "abc",
+			actions:  []string{"peek", "pos"},
+			expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
+		},
+		{
+			name:     "next advances position",
+			input:    "abc",
+			actions:  []string{"next", "pos"},
+			expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
+		},
+		{
+			name:     "at EOF",
+			input:    "a",
+			actions:  []string{"pop", "pos"},
+			expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			actions:  []string{"pos"},
+			expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
+		},
+		{
+			name:     "multiple line breaks",
+			input:    "a\n\nb",
+			actions:  []string{"pop", "pop", "pop", "pos"},
+			expected: []TextPosition{{Idx: 3, Line: 3, Col: 1}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			expectedIdx := 0
+
+			for _, action := range tt.actions {
+				switch action {
+				case "pop":
+					scanner.Pop()
+				case "peek":
+					scanner.Peek()
+				case "next":
+					scanner.Next()
+				case "pos":
+					if expectedIdx >= len(tt.expected) {
+						t.Errorf("unexpected pos call at action %s", action)
+						continue
+					}
+					pos := scanner.Pos()
+					expected := tt.expected[expectedIdx]
+					if pos != expected {
+						t.Errorf("position: expected %+v, got %+v", expected, pos)
+					}
+					expectedIdx++
+				}
+			}
+		})
+	}
+}
+
+
+func TestScannerSetPos(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		setPos   TextPosition
+		expected rune
+	}{
+		{
+			name:     "set to beginning",
+			input:    "abc",
+			setPos:   TextPosition{Idx: 0, Line: 1, Col: 1},
+			expected: 'a',
+		},
+		{
+			name:     "set to middle",
+			input:    "abc",
+			setPos:   TextPosition{Idx: 1, Line: 1, Col: 2},
+			expected: 'b',
+		},
+		{
+			name:     "set to end",
+			input:    "abc",
+			setPos:   TextPosition{Idx: 3, Line: 1, Col: 4},
+			expected: EOF,
+		},
+		{
+			name:     "set beyond end",
+			input:    "abc",
+			setPos:   TextPosition{Idx: 10, Line: 2, Col: 5},
+			expected: EOF,
+		},
+		{
+			name:     "set to UTF-8 boundary",
+			input:    "αβγ",
+			setPos:   TextPosition{Idx: 2, Line: 1, Col: 2},
+			expected: 'β',
+		},
+		{
+			name:     "set to line break",
+			input:    "a\nb",
+			setPos:   TextPosition{Idx: 1, Line: 1, Col: 2},
+			expected: '\n',
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			scanner.SetPos(tt.setPos)
+
+			// Verify position was set correctly
+			if scanner.TextPosition != tt.setPos {
+				t.Errorf("position not set correctly: expected %+v, got %+v", tt.setPos, scanner.TextPosition)
+			}
+
+			// Verify peek returns expected rune
+			r := scanner.Peek()
+			if r != tt.expected {
+				t.Errorf("peek after SetPos: expected %q, got %q", tt.expected, r)
+			}
+		})
+	}
+}
+
+func TestScannerSetPosAfterAdvancement(t *testing.T) {
+	scanner := NewScanner("abcdef")
+
+	// Advance to middle
+	scanner.Pop()
+	scanner.Pop()
+	expectedPos := TextPosition{Idx: 2, Line: 1, Col: 3}
+	if scanner.TextPosition != expectedPos {
+		t.Errorf("after advancement: expected %+v, got %+v", expectedPos, scanner.TextPosition)
+	}
+
+	// Set back to beginning
+	newPos := TextPosition{Idx: 0, Line: 1, Col: 1}
+	scanner.SetPos(newPos)
+	if scanner.TextPosition != newPos {
+		t.Errorf("after SetPos: expected %+v, got %+v", newPos, scanner.TextPosition)
+	}
+
+	// Verify we can read from beginning again
+	r := scanner.Pop()
+	if r != 'a' {
+		t.Errorf("after SetPos to beginning: expected 'a', got %q", r)
+	}
+}
+
+func TestScannerSetPosWithComplexInput(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		setPos TextPosition
+		ops    []func(*Scanner) rune
+		expected []rune
+	}{
+		{
+			name:   "set to CR position",
+			input:  "a\rb",
+			setPos: TextPosition{Idx: 1, Line: 1, Col: 2},
+			ops:    []func(*Scanner) rune{(*Scanner).Pop, (*Scanner).Pop},
+			expected: []rune{'\n', 'b'},
+		},
+		{
+			name:   "set to CRLF position",
+			input:  "a\r\nb",
+			setPos: TextPosition{Idx: 1, Line: 1, Col: 2},
+			ops:    []func(*Scanner) rune{(*Scanner).Pop, (*Scanner).Pop},
+			expected: []rune{'\n', 'b'},
+		},
+		{
+			name:   "set to escaped line break position",
+			input:  "a\\\nb",
+			setPos: TextPosition{Idx: 1, Line: 1, Col: 2},
+			ops:    []func(*Scanner) rune{(*Scanner).Pop},
+			expected: []rune{'b'},
+		},
+		{
+			name:   "set after UTF-8 character",
+			input:  "αβγ",
+			setPos: TextPosition{Idx: 4, Line: 1, Col: 3},
+			ops:    []func(*Scanner) rune{(*Scanner).Pop},
+			expected: []rune{'γ'},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			scanner.SetPos(tt.setPos)
+
+			var result []rune
+			for _, op := range tt.ops {
+				r := op(scanner)
+				result = append(result, r)
+			}
+
+			if len(result) != len(tt.expected) {
+				t.Errorf("expected %d runes, got %d", len(tt.expected), len(result))
+				return
+			}
+
+			for i, expected := range tt.expected {
+				if result[i] != expected {
+					t.Errorf("at position %d: expected %q, got %q", i, expected, result[i])
+				}
+			}
+		})
+	}
+}
+
+func TestScannerIsEOF(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{
+			name:     "empty string at start",
+			input:    "",
+			expected: true,
+		},
+		{
+			name:     "non-empty string at start",
+			input:    "abc",
+			expected: false,
+		},
+		{
+			name:     "single character at start",
+			input:    "a",
+			expected: false,
+		},
+		{
+			name:     "UTF-8 string at start",
+			input:    "αβγ",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			if scanner.IsEOF() != tt.expected {
+				t.Errorf("expected IsEOF() = %t, got %t", tt.expected, scanner.IsEOF())
+			}
+		})
+	}
+}
+
+func TestScannerIsEOFAfterAdvancement(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      string
+		popCount   int
+		expectedEOF bool
+	}{
+		{
+			name:       "single char, one pop",
+			input:      "a",
+			popCount:   1,
+			expectedEOF: true,
+		},
+		{
+			name:       "single char, no pops",
+			input:      "a",
+			popCount:   0,
+			expectedEOF: false,
+		},
+		{
+			name:       "three chars, two pops",
+			input:      "abc",
+			popCount:   2,
+			expectedEOF: false,
+		},
+		{
+			name:       "three chars, three pops",
+			input:      "abc",
+			popCount:   3,
+			expectedEOF: true,
+		},
+		{
+			name:       "three chars, four pops",
+			input:      "abc",
+			popCount:   4,
+			expectedEOF: true,
+		},
+		{
+			name:       "UTF-8 chars, one pop",
+			input:      "αβ",
+			popCount:   1,
+			expectedEOF: false,
+		},
+		{
+			name:       "UTF-8 chars, two pops",
+			input:      "αβ",
+			popCount:   2,
+			expectedEOF: true,
+		},
+		{
+			name:       "line breaks, partial consumption",
+			input:      "a\nb",
+			popCount:   1,
+			expectedEOF: false,
+		},
+		{
+			name:       "line breaks, full consumption",
+			input:      "a\nb",
+			popCount:   3,
+			expectedEOF: true,
+		},
+		{
+			name:       "escaped line break",
+			input:      "a\\\nb",
+			popCount:   2,
+			expectedEOF: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			
+			for i := 0; i < tt.popCount; i++ {
+				scanner.Pop()
+			}
+			
+			if scanner.IsEOF() != tt.expectedEOF {
+				t.Errorf("after %d pops, expected IsEOF() = %t, got %t", 
+					tt.popCount, tt.expectedEOF, scanner.IsEOF())
+			}
+		})
+	}
+}
+
+func TestScannerIsEOFWithSetPos(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		setPos      TextPosition
+		expectedEOF bool
+	}{
+		{
+			name:        "negative index",
+			input:       "abc",
+			setPos:      TextPosition{Idx: -1, Line: 1, Col: 1},
+			expectedEOF: true,
+		},
+		{
+			name:        "zero index on non-empty",
+			input:       "abc",
+			setPos:      TextPosition{Idx: 0, Line: 1, Col: 1},
+			expectedEOF: false,
+		},
+		{
+			name:        "zero index on empty",
+			input:       "",
+			setPos:      TextPosition{Idx: 0, Line: 1, Col: 1},
+			expectedEOF: true,
+		},
+		{
+			name:        "index at end",
+			input:       "abc",
+			setPos:      TextPosition{Idx: 3, Line: 1, Col: 4},
+			expectedEOF: true,
+		},
+		{
+			name:        "index past end",
+			input:       "abc",
+			setPos:      TextPosition{Idx: 10, Line: 1, Col: 11},
+			expectedEOF: true,
+		},
+		{
+			name:        "index within bounds",
+			input:       "abc",
+			setPos:      TextPosition{Idx: 1, Line: 1, Col: 2},
+			expectedEOF: false,
+		},
+		{
+			name:        "UTF-8 string, byte index within multibyte char",
+			input:       "αβγ",
+			setPos:      TextPosition{Idx: 1, Line: 1, Col: 1},
+			expectedEOF: false,
+		},
+		{
+			name:        "UTF-8 string, at end",
+			input:       "αβγ",
+			setPos:      TextPosition{Idx: 6, Line: 1, Col: 4},
+			expectedEOF: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			scanner.SetPos(tt.setPos)
+			
+			if scanner.IsEOF() != tt.expectedEOF {
+				t.Errorf("with position %+v, expected IsEOF() = %t, got %t",
+					tt.setPos, tt.expectedEOF, scanner.IsEOF())
+			}
+		})
+	}
+}
+
+func TestScannerIsEOFWithNewScannerAt(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		startPos    TextPosition
+		expectedEOF bool
+	}{
+		{
+			name:        "start at beginning",
+			input:       "abc",
+			startPos:    TextPosition{Idx: 0, Line: 1, Col: 1},
+			expectedEOF: false,
+		},
+		{
+			name:        "start at end",
+			input:       "abc",
+			startPos:    TextPosition{Idx: 3, Line: 1, Col: 4},
+			expectedEOF: true,
+		},
+		{
+			name:        "start past end",
+			input:       "abc",
+			startPos:    TextPosition{Idx: 5, Line: 1, Col: 6},
+			expectedEOF: true,
+		},
+		{
+			name:        "start at negative index",
+			input:       "abc",
+			startPos:    TextPosition{Idx: -1, Line: 1, Col: 0},
+			expectedEOF: true,
+		},
+		{
+			name:        "start in middle",
+			input:       "abc",
+			startPos:    TextPosition{Idx: 1, Line: 1, Col: 2},
+			expectedEOF: false,
+		},
+		{
+			name:        "empty string at start",
+			input:       "",
+			startPos:    TextPosition{Idx: 0, Line: 1, Col: 1},
+			expectedEOF: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScannerAt(tt.input, tt.startPos)
+			
+			if scanner.IsEOF() != tt.expectedEOF {
+				t.Errorf("with starting position %+v, expected IsEOF() = %t, got %t",
+					tt.startPos, tt.expectedEOF, scanner.IsEOF())
+			}
+		})
+	}
+}
+
+func TestScannerIsEOFConsistency(t *testing.T) {
+	// Test that IsEOF() is consistent with Pop() returning EOF
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "empty string",
+			input: "",
+		},
+		{
+			name:  "single character",
+			input: "a",
+		},
+		{
+			name:  "multiple characters",
+			input: "hello",
+		},
+		{
+			name:  "UTF-8 characters",
+			input: "αβγ",
+		},
+		{
+			name:  "with line breaks",
+			input: "a\nb\rc\r\nd",
+		},
+		{
+			name:  "with escaped line breaks",
+			input: "a\\\nb\\\rc",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+
+			for {
+				isEOFBefore := scanner.IsEOF()
+				r := scanner.Pop()
+
+				if isEOFBefore && r != EOF {
+					t.Errorf("IsEOF() returned true but Pop() returned %q instead of EOF", r)
+				}
+				if !isEOFBefore && r == EOF {
+					t.Errorf("IsEOF() returned false but Pop() returned EOF")
+				}
+
+				if r == EOF {
+					// After Pop() returns EOF, IsEOF() should still return true
+					if !scanner.IsEOF() {
+						t.Errorf("after Pop() returned EOF, IsEOF() should return true")
+					}
+					break
+				}
+			}
+		})
+	}
+}
+
+func TestScannerIsEOFEdgeCases(t *testing.T) {
+	t.Run("very large negative index", func(t *testing.T) {
+		scanner := NewScanner("abc")
+		scanner.SetPos(TextPosition{Idx: -1000000, Line: 1, Col: 1})
+		
+		if !scanner.IsEOF() {
+			t.Error("expected IsEOF() = true for very large negative index")
+		}
+	})
+
+	t.Run("very large positive index", func(t *testing.T) {
+		scanner := NewScanner("abc")
+		scanner.SetPos(TextPosition{Idx: 1000000, Line: 1, Col: 1})
+		
+		if !scanner.IsEOF() {
+			t.Error("expected IsEOF() = true for very large positive index")
+		}
+	})
+
+	t.Run("boundary at zero length", func(t *testing.T) {
+		scanner := NewScanner("")
+		
+		// Index 0 on empty string should be EOF
+		scanner.SetPos(TextPosition{Idx: 0, Line: 1, Col: 1})
+		if !scanner.IsEOF() {
+			t.Error("expected IsEOF() = true for index 0 on empty string")
+		}
+		
+		// Index 1 on empty string should also be EOF
+		scanner.SetPos(TextPosition{Idx: 1, Line: 1, Col: 1})
+		if !scanner.IsEOF() {
+			t.Error("expected IsEOF() = true for index 1 on empty string")
+		}
+	})
+
+	t.Run("exact boundary conditions", func(t *testing.T) {
+		input := "ab"
+		scanner := NewScanner(input)
+		
+		// Index len(input)-1 should not be EOF
+		scanner.SetPos(TextPosition{Idx: len(input) - 1, Line: 1, Col: 2})
+		if scanner.IsEOF() {
+			t.Error("expected IsEOF() = false for index len(input)-1")
+		}
+		
+		// Index len(input) should be EOF
+		scanner.SetPos(TextPosition{Idx: len(input), Line: 1, Col: 3})
+		if !scanner.IsEOF() {
+			t.Error("expected IsEOF() = true for index len(input)")
+		}
+	})
+}
+
 func TestScannerPop(t *testing.T) {
 	tests := []struct {
 		name     string
