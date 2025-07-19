@@ -58,7 +58,7 @@ func (scanner *Scanner) Pos() TextPosition {
 	return scanner.TextPosition
 }
 
-// SetPos hard sets the Scanner to be at the given text position.
+// SetPos hard sets the Scanner to be at the given TextPosition.
 func (scanner *Scanner) SetPos(pos TextPosition) {
 	scanner.TextPosition = pos
 }
