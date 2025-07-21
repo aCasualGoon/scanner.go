@@ -3675,3 +3675,158 @@ func TestForEachConditionCheck(t *testing.T) {
 		})
 	}
 }
+
+func TestScannerText(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "simple ASCII",
+			input:    "hello world",
+			expected: "hello world",
+		},
+		{
+			name:     "UTF-8 characters",
+			input:    "αβγδε",
+			expected: "αβγδε",
+		},
+		{
+			name:     "mixed ASCII and UTF-8",
+			input:    "Hello αβγ World",
+			expected: "Hello αβγ World",
+		},
+		{
+			name:     "line breaks",
+			input:    "line1\nline2\rline3\r\nline4",
+			expected: "line1\nline2\rline3\r\nline4",
+		},
+		{
+			name:     "escaped line breaks",
+			input:    "line1\\\nline2",
+			expected: "line1\\\nline2",
+		},
+		{
+			name:     "special characters",
+			input:    "!@#$%^&*()_+-=[]{}|;':\",./<>?",
+			expected: "!@#$%^&*()_+-=[]{}|;':\",./<>?",
+		},
+		{
+			name:     "whitespace characters",
+			input:    " \t\n\r\f\v",
+			expected: " \t\n\r\f\v",
+		},
+		{
+			name:     "numbers and symbols",
+			input:    "12345 + 67890 = ?",
+			expected: "12345 + 67890 = ?",
+		},
+		{
+			name:     "very long string",
+			input:    strings.Repeat("abcdefghijklmnopqrstuvwxyz", 100),
+			expected: strings.Repeat("abcdefghijklmnopqrstuvwxyz", 100),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			result := scanner.Text()
+			
+			if result != tt.expected {
+				t.Errorf("Text() = %q, expected %q", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestScannerTextImmutable(t *testing.T) {
+	originalText := "hello world"
+	scanner := NewScanner(originalText)
+	
+	// Get text multiple times
+	text1 := scanner.Text()
+	text2 := scanner.Text()
+	
+	// Should return the same string each time
+	if text1 != text2 {
+		t.Errorf("Text() returned different values: %q vs %q", text1, text2)
+	}
+	
+	if text1 != originalText {
+		t.Errorf("Text() = %q, expected %q", text1, originalText)
+	}
+}
+
+func TestScannerTextAfterOperations(t *testing.T) {
+	originalText := "hello world"
+	scanner := NewScanner(originalText)
+	
+	// Perform various operations
+	scanner.Pop()
+	scanner.Peek()
+	scanner.Next()
+	scanner.Mark()
+	scanner.SetPos(TextPosition{Idx: 5, Line: 1, Col: 6})
+	
+	// Text should still return the original text
+	result := scanner.Text()
+	if result != originalText {
+		t.Errorf("Text() after operations = %q, expected %q", result, originalText)
+	}
+}
+
+func TestScannerTextWithNewScannerAt(t *testing.T) {
+	originalText := "hello world"
+	startPos := TextPosition{Idx: 3, Line: 1, Col: 4}
+	scanner := NewScannerAt(originalText, startPos)
+	
+	result := scanner.Text()
+	if result != originalText {
+		t.Errorf("Text() with NewScannerAt = %q, expected %q", result, originalText)
+	}
+}
+
+func TestScannerTextConsistency(t *testing.T) {
+	tests := []string{
+		"",
+		"a",
+		"hello",
+		"αβγ",
+		"line1\nline2",
+		"a\r\nb",
+		"escaped\\\nline",
+		strings.Repeat("test", 1000),
+	}
+	
+	for _, text := range tests {
+		t.Run("text_"+text[:min(10, len(text))], func(t *testing.T) {
+			scanner1 := NewScanner(text)
+			scanner2 := NewScannerAt(text, TextPosition{Idx: 0, Line: 1, Col: 1})
+			
+			result1 := scanner1.Text()
+			result2 := scanner2.Text()
+			
+			if result1 != result2 {
+				t.Errorf("NewScanner and NewScannerAt returned different text: %q vs %q", result1, result2)
+			}
+			
+			if result1 != text {
+				t.Errorf("Text() = %q, expected %q", result1, text)
+			}
+		})
+	}
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}

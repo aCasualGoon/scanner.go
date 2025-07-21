@@ -53,6 +53,11 @@ func NewScannerAt(text string, startingPosition TextPosition) *Scanner {
 	}
 }
 
+// Text returns the text set in the Scanner.
+func (scanner *Scanner) Text() string {
+	return scanner.text
+}
+
 // Pos returns the TextPosition the scanner is currently at.
 func (scanner *Scanner) Pos() TextPosition {
 	return scanner.TextPosition
