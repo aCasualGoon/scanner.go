@@ -141,6 +141,22 @@ func (scanner *Scanner) PopSpan() RuneSpan {
 	}
 }
 
+// PopN returns a string of up to n runes from the current position and advances to the rune after.
+// When trying to retrieve runes past the end of the input, the returned string is cut short.
+// All line breaks (CR, LF and CRLF) are normalized to LF.
+// A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
+func (scanner *Scanner) PopN(n int) string {
+	previousMarkedPos := scanner.markedPos
+
+	for range n {
+		scanner.Pop()
+	}
+	text := scanner.Slice()
+
+	scanner.markedPos = previousMarkedPos
+	return text
+}
+
 // Peek returns the rune at the current scanner position without advancing.
 // If the current position is past the end of the text, EOF is returned.
 // All line breaks (CR, LF and CRLF) are normalized to LF.
@@ -160,6 +176,24 @@ func (scanner *Scanner) PeekSpan() RuneSpan {
 	span := scanner.PopSpan()
 	scanner.TextPosition = span.Pos
 	return span
+}
+
+// PeekN returns a string of up to n runes from the current position without advancing.
+// When trying to retrieve runes past the end of the input, the returned string is cut short.
+// All line breaks (CR, LF and CRLF) are normalized to LF.
+// A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
+func (scanner *Scanner) PeekN(n int) string {
+	previousPos       := scanner.Pos()
+	previousMarkedPos := scanner.markedPos
+
+	for range n {
+		scanner.Pop()
+	}
+	text := scanner.Slice()
+
+	scanner.SetPos(previousPos)
+	scanner.markedPos = previousMarkedPos
+	return text
 }
 
 // Next consumes the rune at the current scanner position and returns the next rune.
