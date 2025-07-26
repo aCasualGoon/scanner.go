@@ -16,79 +16,79 @@ func TestScannerPos(t *testing.T) {
 			name:     "initial position",
 			input:    "abc",
 			actions:  []string{"pos"},
-			expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
+			expected: []TextPosition{{Offset: 0, Line: 1, Col: 1}},
 		},
 		{
 			name:     "after single pop",
 			input:    "abc",
 			actions:  []string{"pop", "pos"},
-			expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
+			expected: []TextPosition{{Offset: 1, Line: 1, Col: 2}},
 		},
 		{
 			name:     "after multiple pops",
 			input:    "hello",
 			actions:  []string{"pop", "pop", "pop", "pos"},
-			expected: []TextPosition{{Idx: 3, Line: 1, Col: 4}},
+			expected: []TextPosition{{Offset: 3, Line: 1, Col: 4}},
 		},
 		{
 			name:     "after line break",
 			input:    "a\nb",
 			actions:  []string{"pop", "pop", "pos"},
-			expected: []TextPosition{{Idx: 2, Line: 2, Col: 1}},
+			expected: []TextPosition{{Offset: 2, Line: 2, Col: 1}},
 		},
 		{
 			name:     "after CR normalization",
 			input:    "a\rb",
 			actions:  []string{"pop", "pop", "pos"},
-			expected: []TextPosition{{Idx: 2, Line: 2, Col: 1}},
+			expected: []TextPosition{{Offset: 2, Line: 2, Col: 1}},
 		},
 		{
 			name:     "after CRLF normalization",
 			input:    "a\r\nb",
 			actions:  []string{"pop", "pop", "pos"},
-			expected: []TextPosition{{Idx: 3, Line: 2, Col: 1}},
+			expected: []TextPosition{{Offset: 3, Line: 2, Col: 1}},
 		},
 		{
 			name:     "after escaped line break",
 			input:    "a\\\nb",
 			actions:  []string{"pop", "pop", "pos"},
-			expected: []TextPosition{{Idx: 4, Line: 2, Col: 2}},
+			expected: []TextPosition{{Offset: 4, Line: 2, Col: 2}},
 		},
 		{
 			name:     "after UTF-8 character",
 			input:    "αβγ",
 			actions:  []string{"pop", "pos"},
-			expected: []TextPosition{{Idx: 2, Line: 1, Col: 2}},
+			expected: []TextPosition{{Offset: 2, Line: 1, Col: 2}},
 		},
 		{
 			name:     "peek doesn't change position",
 			input:    "abc",
 			actions:  []string{"peek", "pos"},
-			expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
+			expected: []TextPosition{{Offset: 0, Line: 1, Col: 1}},
 		},
 		{
 			name:     "next advances position",
 			input:    "abc",
 			actions:  []string{"next", "pos"},
-			expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
+			expected: []TextPosition{{Offset: 1, Line: 1, Col: 2}},
 		},
 		{
 			name:     "at EOF",
 			input:    "a",
 			actions:  []string{"pop", "pos"},
-			expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
+			expected: []TextPosition{{Offset: 1, Line: 1, Col: 2}},
 		},
 		{
 			name:     "empty string",
 			input:    "",
 			actions:  []string{"pos"},
-			expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
+			expected: []TextPosition{{Offset: 0, Line: 1, Col: 1}},
 		},
 		{
 			name:     "multiple line breaks",
 			input:    "a\n\nb",
 			actions:  []string{"pop", "pop", "pop", "pos"},
-			expected: []TextPosition{{Idx: 3, Line: 3, Col: 1}},
+			expected: []TextPosition{{Offset: 3, Line: 3, Col: 1}},
 		},
 	}
 
@@ -122,7 +122,6 @@ func TestScannerPos(t *testing.T) {
 	}
 }
 
-
 func TestScannerSetPos(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -133,37 +132,37 @@ func TestScannerSetPos(t *testing.T) {
 		{
 			name:     "set to beginning",
 			input:    "abc",
-			setPos:   TextPosition{Idx: 0, Line: 1, Col: 1},
+			setPos:   TextPosition{Offset: 0, Line: 1, Col: 1},
 			expected: 'a',
 		},
 		{
 			name:     "set to middle",
 			input:    "abc",
-			setPos:   TextPosition{Idx: 1, Line: 1, Col: 2},
+			setPos:   TextPosition{Offset: 1, Line: 1, Col: 2},
 			expected: 'b',
 		},
 		{
 			name:     "set to end",
 			input:    "abc",
-			setPos:   TextPosition{Idx: 3, Line: 1, Col: 4},
+			setPos:   TextPosition{Offset: 3, Line: 1, Col: 4},
 			expected: EOF,
 		},
 		{
 			name:     "set beyond end",
 			input:    "abc",
-			setPos:   TextPosition{Idx: 10, Line: 2, Col: 5},
+			setPos:   TextPosition{Offset: 10, Line: 2, Col: 5},
 			expected: EOF,
 		},
 		{
 			name:     "set to UTF-8 boundary",
 			input:    "αβγ",
-			setPos:   TextPosition{Idx: 2, Line: 1, Col: 2},
+			setPos:   TextPosition{Offset: 2, Line: 1, Col: 2},
 			expected: 'β',
 		},
 		{
 			name:     "set to line break",
 			input:    "a\nb",
-			setPos:   TextPosition{Idx: 1, Line: 1, Col: 2},
+			setPos:   TextPosition{Offset: 1, Line: 1, Col: 2},
 			expected: '\n',
 		},
 	}
@@ -193,13 +192,13 @@ func TestScannerSetPosAfterAdvancement(t *testing.T) {
 	// Advance to middle
 	scanner.Pop()
 	scanner.Pop()
-	expectedPos := TextPosition{Idx: 2, Line: 1, Col: 3}
+	expectedPos := TextPosition{Offset: 2, Line: 1, Col: 3}
 	if scanner.TextPosition != expectedPos {
 		t.Errorf("after advancement: expected %+v, got %+v", expectedPos, scanner.TextPosition)
 	}
 
 	// Set back to beginning
-	newPos := TextPosition{Idx: 0, Line: 1, Col: 1}
+	newPos := TextPosition{Offset: 0, Line: 1, Col: 1}
 	scanner.SetPos(newPos)
 	if scanner.TextPosition != newPos {
 		t.Errorf("after SetPos: expected %+v, got %+v", newPos, scanner.TextPosition)
@@ -214,38 +213,38 @@ func TestScannerSetPosAfterAdvancement(t *testing.T) {
 
 func TestScannerSetPosWithComplexInput(t *testing.T) {
 	tests := []struct {
-		name   string
-		input  string
-		setPos TextPosition
-		ops    []func(*Scanner) rune
+		name     string
+		input    string
+		setPos   TextPosition
+		ops      []func(*Scanner) rune
 		expected []rune
 	}{
 		{
-			name:   "set to CR position",
-			input:  "a\rb",
-			setPos: TextPosition{Idx: 1, Line: 1, Col: 2},
-			ops:    []func(*Scanner) rune{(*Scanner).Pop, (*Scanner).Pop},
+			name:     "set to CR position",
+			input:    "a\rb",
+			setPos:   TextPosition{Offset: 1, Line: 1, Col: 2},
+			ops:      []func(*Scanner) rune{(*Scanner).Pop, (*Scanner).Pop},
 			expected: []rune{'\n', 'b'},
 		},
 		{
-			name:   "set to CRLF position",
-			input:  "a\r\nb",
-			setPos: TextPosition{Idx: 1, Line: 1, Col: 2},
-			ops:    []func(*Scanner) rune{(*Scanner).Pop, (*Scanner).Pop},
+			name:     "set to CRLF position",
+			input:    "a\r\nb",
+			setPos:   TextPosition{Offset: 1, Line: 1, Col: 2},
+			ops:      []func(*Scanner) rune{(*Scanner).Pop, (*Scanner).Pop},
 			expected: []rune{'\n', 'b'},
 		},
 		{
-			name:   "set to escaped line break position",
-			input:  "a\\\nb",
-			setPos: TextPosition{Idx: 1, Line: 1, Col: 2},
-			ops:    []func(*Scanner) rune{(*Scanner).Pop},
+			name:     "set to escaped line break position",
+			input:    "a\\\nb",
+			setPos:   TextPosition{Offset: 1, Line: 1, Col: 2},
+			ops:      []func(*Scanner) rune{(*Scanner).Pop},
 			expected: []rune{'b'},
 		},
 		{
-			name:   "set after UTF-8 character",
-			input:  "αβγ",
-			setPos: TextPosition{Idx: 4, Line: 1, Col: 3},
-			ops:    []func(*Scanner) rune{(*Scanner).Pop},
+			name:     "set after UTF-8 character",
+			input:    "αβγ",
+			setPos:   TextPosition{Offset: 4, Line: 1, Col: 3},
+			ops:      []func(*Scanner) rune{(*Scanner).Pop},
 			expected: []rune{'γ'},
 		},
 	}
@@ -315,69 +314,69 @@ func TestScannerIsEOF(t *testing.T) {
 
 func TestScannerIsEOFAfterAdvancement(t *testing.T) {
 	tests := []struct {
-		name       string
-		input      string
-		popCount   int
+		name        string
+		input       string
+		popCount    int
 		expectedEOF bool
 	}{
 		{
-			name:       "single char, one pop",
-			input:      "a",
-			popCount:   1,
+			name:        "single char, one pop",
+			input:       "a",
+			popCount:    1,
 			expectedEOF: true,
 		},
 		{
-			name:       "single char, no pops",
-			input:      "a",
-			popCount:   0,
+			name:        "single char, no pops",
+			input:       "a",
+			popCount:    0,
 			expectedEOF: false,
 		},
 		{
-			name:       "three chars, two pops",
-			input:      "abc",
-			popCount:   2,
+			name:        "three chars, two pops",
+			input:       "abc",
+			popCount:    2,
 			expectedEOF: false,
 		},
 		{
-			name:       "three chars, three pops",
-			input:      "abc",
-			popCount:   3,
+			name:        "three chars, three pops",
+			input:       "abc",
+			popCount:    3,
 			expectedEOF: true,
 		},
 		{
-			name:       "three chars, four pops",
-			input:      "abc",
-			popCount:   4,
+			name:        "three chars, four pops",
+			input:       "abc",
+			popCount:    4,
 			expectedEOF: true,
 		},
 		{
-			name:       "UTF-8 chars, one pop",
-			input:      "αβ",
-			popCount:   1,
+			name:        "UTF-8 chars, one pop",
+			input:       "αβ",
+			popCount:    1,
 			expectedEOF: false,
 		},
 		{
-			name:       "UTF-8 chars, two pops",
-			input:      "αβ",
-			popCount:   2,
+			name:        "UTF-8 chars, two pops",
+			input:       "αβ",
+			popCount:    2,
 			expectedEOF: true,
 		},
 		{
-			name:       "line breaks, partial consumption",
-			input:      "a\nb",
-			popCount:   1,
+			name:        "line breaks, partial consumption",
+			input:       "a\nb",
+			popCount:    1,
 			expectedEOF: false,
 		},
 		{
-			name:       "line breaks, full consumption",
-			input:      "a\nb",
-			popCount:   3,
+			name:        "line breaks, full consumption",
+			input:       "a\nb",
+			popCount:    3,
 			expectedEOF: true,
 		},
 		{
-			name:       "escaped line break",
-			input:      "a\\\nb",
-			popCount:   2,
+			name:        "escaped line break",
+			input:       "a\\\nb",
+			popCount:    2,
 			expectedEOF: true,
 		},
 	}
@@ -385,13 +384,13 @@ func TestScannerIsEOFAfterAdvancement(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			scanner := NewScanner(tt.input)
-			
+
 			for i := 0; i < tt.popCount; i++ {
 				scanner.Pop()
 			}
-			
+
 			if scanner.IsEOF() != tt.expectedEOF {
-				t.Errorf("after %d pops, expected IsEOF() = %t, got %t", 
+				t.Errorf("after %d pops, expected IsEOF() = %t, got %t",
 					tt.popCount, tt.expectedEOF, scanner.IsEOF())
 			}
 		})
@@ -408,49 +407,49 @@ func TestScannerIsEOFWithSetPos(t *testing.T) {
 		{
 			name:        "negative index",
 			input:       "abc",
-			setPos:      TextPosition{Idx: -1, Line: 1, Col: 1},
+			setPos:      TextPosition{Offset: -1, Line: 1, Col: 1},
 			expectedEOF: true,
 		},
 		{
 			name:        "zero index on non-empty",
 			input:       "abc",
-			setPos:      TextPosition{Idx: 0, Line: 1, Col: 1},
+			setPos:      TextPosition{Offset: 0, Line: 1, Col: 1},
 			expectedEOF: false,
 		},
 		{
 			name:        "zero index on empty",
 			input:       "",
-			setPos:      TextPosition{Idx: 0, Line: 1, Col: 1},
+			setPos:      TextPosition{Offset: 0, Line: 1, Col: 1},
 			expectedEOF: true,
 		},
 		{
 			name:        "index at end",
 			input:       "abc",
-			setPos:      TextPosition{Idx: 3, Line: 1, Col: 4},
+			setPos:      TextPosition{Offset: 3, Line: 1, Col: 4},
 			expectedEOF: true,
 		},
 		{
 			name:        "index past end",
 			input:       "abc",
-			setPos:      TextPosition{Idx: 10, Line: 1, Col: 11},
+			setPos:      TextPosition{Offset: 10, Line: 1, Col: 11},
 			expectedEOF: true,
 		},
 		{
 			name:        "index within bounds",
 			input:       "abc",
-			setPos:      TextPosition{Idx: 1, Line: 1, Col: 2},
+			setPos:      TextPosition{Offset: 1, Line: 1, Col: 2},
 			expectedEOF: false,
 		},
 		{
 			name:        "UTF-8 string, byte index within multibyte char",
 			input:       "αβγ",
-			setPos:      TextPosition{Idx: 1, Line: 1, Col: 1},
+			setPos:      TextPosition{Offset: 1, Line: 1, Col: 1},
 			expectedEOF: false,
 		},
 		{
 			name:        "UTF-8 string, at end",
 			input:       "αβγ",
-			setPos:      TextPosition{Idx: 6, Line: 1, Col: 4},
+			setPos:      TextPosition{Offset: 6, Line: 1, Col: 4},
 			expectedEOF: true,
 		},
 	}
@@ -459,7 +458,7 @@ func TestScannerIsEOFWithSetPos(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			scanner := NewScanner(tt.input)
 			scanner.SetPos(tt.setPos)
-			
+
 			if scanner.IsEOF() != tt.expectedEOF {
 				t.Errorf("with position %+v, expected IsEOF() = %t, got %t",
 					tt.setPos, tt.expectedEOF, scanner.IsEOF())
@@ -478,37 +477,37 @@ func TestScannerIsEOFWithNewScannerAt(t *testing.T) {
 		{
 			name:        "start at beginning",
 			input:       "abc",
-			startPos:    TextPosition{Idx: 0, Line: 1, Col: 1},
+			startPos:    TextPosition{Offset: 0, Line: 1, Col: 1},
 			expectedEOF: false,
 		},
 		{
 			name:        "start at end",
 			input:       "abc",
-			startPos:    TextPosition{Idx: 3, Line: 1, Col: 4},
+			startPos:    TextPosition{Offset: 3, Line: 1, Col: 4},
 			expectedEOF: true,
 		},
 		{
 			name:        "start past end",
 			input:       "abc",
-			startPos:    TextPosition{Idx: 5, Line: 1, Col: 6},
+			startPos:    TextPosition{Offset: 5, Line: 1, Col: 6},
 			expectedEOF: true,
 		},
 		{
 			name:        "start at negative index",
 			input:       "abc",
-			startPos:    TextPosition{Idx: -1, Line: 1, Col: 0},
+			startPos:    TextPosition{Offset: -1, Line: 1, Col: 0},
 			expectedEOF: true,
 		},
 		{
 			name:        "start in middle",
 			input:       "abc",
-			startPos:    TextPosition{Idx: 1, Line: 1, Col: 2},
+			startPos:    TextPosition{Offset: 1, Line: 1, Col: 2},
 			expectedEOF: false,
 		},
 		{
 			name:        "empty string at start",
 			input:       "",
-			startPos:    TextPosition{Idx: 0, Line: 1, Col: 1},
+			startPos:    TextPosition{Offset: 0, Line: 1, Col: 1},
 			expectedEOF: true,
 		},
 	}
@@ -516,7 +515,7 @@ func TestScannerIsEOFWithNewScannerAt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			scanner := NewScannerAt(tt.input, tt.startPos)
-			
+
 			if scanner.IsEOF() != tt.expectedEOF {
 				t.Errorf("with starting position %+v, expected IsEOF() = %t, got %t",
 					tt.startPos, tt.expectedEOF, scanner.IsEOF())
@@ -587,8 +586,8 @@ func TestScannerIsEOFConsistency(t *testing.T) {
 func TestScannerIsEOFEdgeCases(t *testing.T) {
 	t.Run("very large negative index", func(t *testing.T) {
 		scanner := NewScanner("abc")
-		scanner.SetPos(TextPosition{Idx: -1000000, Line: 1, Col: 1})
-		
+		scanner.SetPos(TextPosition{Offset: -1000000, Line: 1, Col: 1})
+
 		if !scanner.IsEOF() {
 			t.Error("expected IsEOF() = true for very large negative index")
 		}
@@ -596,8 +595,8 @@ func TestScannerIsEOFEdgeCases(t *testing.T) {
 
 	t.Run("very large positive index", func(t *testing.T) {
 		scanner := NewScanner("abc")
-		scanner.SetPos(TextPosition{Idx: 1000000, Line: 1, Col: 1})
-		
+		scanner.SetPos(TextPosition{Offset: 1000000, Line: 1, Col: 1})
+
 		if !scanner.IsEOF() {
 			t.Error("expected IsEOF() = true for very large positive index")
 		}
@@ -605,15 +604,15 @@ func TestScannerIsEOFEdgeCases(t *testing.T) {
 
 	t.Run("boundary at zero length", func(t *testing.T) {
 		scanner := NewScanner("")
-		
+
 		// Index 0 on empty string should be EOF
-		scanner.SetPos(TextPosition{Idx: 0, Line: 1, Col: 1})
+		scanner.SetPos(TextPosition{Offset: 0, Line: 1, Col: 1})
 		if !scanner.IsEOF() {
 			t.Error("expected IsEOF() = true for index 0 on empty string")
 		}
-		
+
 		// Index 1 on empty string should also be EOF
-		scanner.SetPos(TextPosition{Idx: 1, Line: 1, Col: 1})
+		scanner.SetPos(TextPosition{Offset: 1, Line: 1, Col: 1})
 		if !scanner.IsEOF() {
 			t.Error("expected IsEOF() = true for index 1 on empty string")
 		}
@@ -622,15 +621,15 @@ func TestScannerIsEOFEdgeCases(t *testing.T) {
 	t.Run("exact boundary conditions", func(t *testing.T) {
 		input := "ab"
 		scanner := NewScanner(input)
-		
+
 		// Index len(input)-1 should not be EOF
-		scanner.SetPos(TextPosition{Idx: len(input) - 1, Line: 1, Col: 2})
+		scanner.SetPos(TextPosition{Offset: len(input) - 1, Line: 1, Col: 2})
 		if scanner.IsEOF() {
 			t.Error("expected IsEOF() = false for index len(input)-1")
 		}
-		
+
 		// Index len(input) should be EOF
-		scanner.SetPos(TextPosition{Idx: len(input), Line: 1, Col: 3})
+		scanner.SetPos(TextPosition{Offset: len(input), Line: 1, Col: 3})
 		if !scanner.IsEOF() {
 			t.Error("expected IsEOF() = true for index len(input)")
 		}
@@ -732,28 +731,28 @@ func TestScannerPopPosition(t *testing.T) {
 			name:  "simple line and column tracking",
 			input: "ab\nc",
 			expected: []TextPosition{
-				{Idx: 1, Line: 1, Col: 2}, // after 'a'
-				{Idx: 2, Line: 1, Col: 3}, // after 'b'
-				{Idx: 3, Line: 2, Col: 1}, // after '\n'
-				{Idx: 4, Line: 2, Col: 2}, // after 'c'
+				{Offset: 1, Line: 1, Col: 2}, // after 'a'
+				{Offset: 2, Line: 1, Col: 3}, // after 'b'
+				{Offset: 3, Line: 2, Col: 1}, // after '\n'
+				{Offset: 4, Line: 2, Col: 2}, // after 'c'
 			},
 		},
 		{
 			name:  "CR normalization position",
 			input: "a\rb",
 			expected: []TextPosition{
-				{Idx: 1, Line: 1, Col: 2}, // after 'a'
-				{Idx: 2, Line: 2, Col: 1}, // after '\r' (normalized to '\n')
-				{Idx: 3, Line: 2, Col: 2}, // after 'b'
+				{Offset: 1, Line: 1, Col: 2}, // after 'a'
+				{Offset: 2, Line: 2, Col: 1}, // after '\r' (normalized to '\n')
+				{Offset: 3, Line: 2, Col: 2}, // after 'b'
 			},
 		},
 		{
 			name:  "CRLF normalization position",
 			input: "a\r\nb",
 			expected: []TextPosition{
-				{Idx: 1, Line: 1, Col: 2}, // after 'a'
-				{Idx: 3, Line: 2, Col: 1}, // after '\r\n' (normalized to '\n')
-				{Idx: 4, Line: 2, Col: 2}, // after 'b'
+				{Offset: 1, Line: 1, Col: 2}, // after 'a'
+				{Offset: 3, Line: 2, Col: 1}, // after '\r\n' (normalized to '\n')
+				{Offset: 4, Line: 2, Col: 2}, // after 'b'
 			},
 		},
 	}
@@ -782,54 +781,54 @@ func TestScannerPopSpan(t *testing.T) {
 			name:  "empty string",
 			input: "",
 			expected: []RuneSpan{
-				{Rune: EOF, Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 0, Line: 1, Col: 1}},
+				{Rune: EOF, Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 0, Line: 1, Col: 1}},
 			},
 		},
 		{
 			name:  "simple ASCII",
 			input: "ab",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
-				{Rune: EOF, Pos: TextPosition{Idx: 2, Line: 1, Col: 3}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
+				{Rune: EOF, Pos: TextPosition{Offset: 2, Line: 1, Col: 3}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
 			},
 		},
 		{
 			name:  "UTF-8 characters",
 			input: "αβ",
 			expected: []RuneSpan{
-				{Rune: 'α', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 2, Line: 1, Col: 2}},
-				{Rune: 'β', Pos: TextPosition{Idx: 2, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 1, Col: 3}},
-				{Rune: EOF, Pos: TextPosition{Idx: 4, Line: 1, Col: 3}, End: TextPosition{Idx: 4, Line: 1, Col: 3}},
+				{Rune: 'α', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 2, Line: 1, Col: 2}},
+				{Rune: 'β', Pos: TextPosition{Offset: 2, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 1, Col: 3}},
+				{Rune: EOF, Pos: TextPosition{Offset: 4, Line: 1, Col: 3}, End: TextPosition{Offset: 4, Line: 1, Col: 3}},
 			},
 		},
 		{
 			name:  "line break normalization",
 			input: "a\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 2, Line: 2, Col: 1}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
-				{Rune: EOF, Pos: TextPosition{Idx: 3, Line: 2, Col: 2}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 2, Line: 2, Col: 1}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
+				{Rune: EOF, Pos: TextPosition{Offset: 3, Line: 2, Col: 2}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "CRLF normalization",
 			input: "a\r\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 3, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 3, Line: 2, Col: 1}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
-				{Rune: EOF, Pos: TextPosition{Idx: 4, Line: 2, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 3, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 3, Line: 2, Col: 1}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
+				{Rune: EOF, Pos: TextPosition{Offset: 4, Line: 2, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "escaped line break",
 			input: "a\\\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
-				{Rune: EOF, Pos: TextPosition{Idx: 4, Line: 2, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
+				{Rune: EOF, Pos: TextPosition{Offset: 4, Line: 2, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
 			},
 		},
 	}
@@ -976,7 +975,7 @@ func TestScannerPeekPosition(t *testing.T) {
 	scanner := NewScanner("abc")
 
 	// Initial position
-	expectedPos := TextPosition{Idx: 0, Line: 1, Col: 1}
+	expectedPos := TextPosition{Offset: 0, Line: 1, Col: 1}
 	if scanner.TextPosition != expectedPos {
 		t.Errorf("initial position: expected %+v, got %+v", expectedPos, scanner.TextPosition)
 	}
@@ -996,7 +995,7 @@ func TestScannerPeekPosition(t *testing.T) {
 
 	// Pop should advance position
 	scanner.Pop()
-	expectedPos = TextPosition{Idx: 1, Line: 1, Col: 2}
+	expectedPos = TextPosition{Offset: 1, Line: 1, Col: 2}
 	if scanner.TextPosition != expectedPos {
 		t.Errorf("after pop: expected %+v, got %+v", expectedPos, scanner.TextPosition)
 	}
@@ -1012,55 +1011,55 @@ func TestScannerPeekSpan(t *testing.T) {
 			name:  "empty string",
 			input: "",
 			expected: []RuneSpan{
-				{Rune: EOF, Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 0, Line: 1, Col: 1}},
+				{Rune: EOF, Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 0, Line: 1, Col: 1}},
 			},
 		},
 		{
 			name:  "simple ASCII",
 			input: "ab",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
 			},
 		},
 		{
 			name:  "UTF-8 characters",
 			input: "αβ",
 			expected: []RuneSpan{
-				{Rune: 'α', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 2, Line: 1, Col: 2}},
-				{Rune: 'α', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 2, Line: 1, Col: 2}},
+				{Rune: 'α', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 2, Line: 1, Col: 2}},
+				{Rune: 'α', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 2, Line: 1, Col: 2}},
 			},
 		},
 		{
 			name:  "line break normalization",
 			input: "a\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
 			},
 		},
 		{
 			name:  "CR normalization",
 			input: "a\rb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
 			},
 		},
 		{
 			name:  "CRLF normalization",
 			input: "a\r\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
 			},
 		},
 		{
 			name:  "escaped line break",
 			input: "a\\\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
 			},
 		},
 	}
@@ -1136,7 +1135,7 @@ func TestScannerPeekSpanPosition(t *testing.T) {
 	scanner := NewScanner("abc")
 
 	// Initial position
-	expectedPos := TextPosition{Idx: 0, Line: 1, Col: 1}
+	expectedPos := TextPosition{Offset: 0, Line: 1, Col: 1}
 	if scanner.TextPosition != expectedPos {
 		t.Errorf("initial position: expected %+v, got %+v", expectedPos, scanner.TextPosition)
 	}
@@ -1150,8 +1149,8 @@ func TestScannerPeekSpanPosition(t *testing.T) {
 	// Verify span has correct positions
 	expectedSpan := RuneSpan{
 		Rune: 'a',
-		Pos:  TextPosition{Idx: 0, Line: 1, Col: 1},
-		End:  TextPosition{Idx: 1, Line: 1, Col: 2},
+		Pos:  TextPosition{Offset: 0, Line: 1, Col: 1},
+		End:  TextPosition{Offset: 1, Line: 1, Col: 2},
 	}
 	if span != expectedSpan {
 		t.Errorf("expected span %+v, got %+v", expectedSpan, span)
@@ -1166,7 +1165,7 @@ func TestScannerPeekSpanPosition(t *testing.T) {
 
 	// PopSpan should advance position
 	scanner.PopSpan()
-	expectedPos = TextPosition{Idx: 1, Line: 1, Col: 2}
+	expectedPos = TextPosition{Offset: 1, Line: 1, Col: 2}
 	if scanner.TextPosition != expectedPos {
 		t.Errorf("after pop span: expected %+v, got %+v", expectedPos, scanner.TextPosition)
 	}
@@ -1183,8 +1182,8 @@ func TestScannerPeekSpanSpecialCases(t *testing.T) {
 			input: "\rabc",
 			expectedSpan: RuneSpan{
 				Rune: '\n',
-				Pos:  TextPosition{Idx: 0, Line: 1, Col: 1},
-				End:  TextPosition{Idx: 1, Line: 2, Col: 1},
+				Pos:  TextPosition{Offset: 0, Line: 1, Col: 1},
+				End:  TextPosition{Offset: 1, Line: 2, Col: 1},
 			},
 		},
 		{
@@ -1192,8 +1191,8 @@ func TestScannerPeekSpanSpecialCases(t *testing.T) {
 			input: "\r\nabc",
 			expectedSpan: RuneSpan{
 				Rune: '\n',
-				Pos:  TextPosition{Idx: 0, Line: 1, Col: 1},
-				End:  TextPosition{Idx: 2, Line: 2, Col: 1},
+				Pos:  TextPosition{Offset: 0, Line: 1, Col: 1},
+				End:  TextPosition{Offset: 2, Line: 2, Col: 1},
 			},
 		},
 		{
@@ -1201,8 +1200,8 @@ func TestScannerPeekSpanSpecialCases(t *testing.T) {
 			input: "\\\nabc",
 			expectedSpan: RuneSpan{
 				Rune: 'a',
-				Pos:  TextPosition{Idx: 0, Line: 1, Col: 1},
-				End:  TextPosition{Idx: 3, Line: 2, Col: 2},
+				Pos:  TextPosition{Offset: 0, Line: 1, Col: 1},
+				End:  TextPosition{Offset: 3, Line: 2, Col: 2},
 			},
 		},
 		{
@@ -1210,8 +1209,8 @@ func TestScannerPeekSpanSpecialCases(t *testing.T) {
 			input: "\\abc",
 			expectedSpan: RuneSpan{
 				Rune: '\\',
-				Pos:  TextPosition{Idx: 0, Line: 1, Col: 1},
-				End:  TextPosition{Idx: 1, Line: 1, Col: 2},
+				Pos:  TextPosition{Offset: 0, Line: 1, Col: 1},
+				End:  TextPosition{Offset: 1, Line: 1, Col: 2},
 			},
 		},
 		{
@@ -1219,8 +1218,8 @@ func TestScannerPeekSpanSpecialCases(t *testing.T) {
 			input: "\\",
 			expectedSpan: RuneSpan{
 				Rune: '\\',
-				Pos:  TextPosition{Idx: 0, Line: 1, Col: 1},
-				End:  TextPosition{Idx: 1, Line: 1, Col: 2},
+				Pos:  TextPosition{Offset: 0, Line: 1, Col: 1},
+				End:  TextPosition{Offset: 1, Line: 1, Col: 2},
 			},
 		},
 	}
@@ -1235,7 +1234,7 @@ func TestScannerPeekSpanSpecialCases(t *testing.T) {
 			}
 
 			// Verify position unchanged
-			expectedPos := TextPosition{Idx: 0, Line: 1, Col: 1}
+			expectedPos := TextPosition{Offset: 0, Line: 1, Col: 1}
 			if scanner.TextPosition != expectedPos {
 				t.Errorf("position changed after peek span: expected %+v, got %+v", expectedPos, scanner.TextPosition)
 			}
@@ -1253,8 +1252,8 @@ func TestScannerPeekSpanAfterAdvancement(t *testing.T) {
 	span := scanner.PeekSpan()
 	expectedSpan := RuneSpan{
 		Rune: 'b',
-		Pos:  TextPosition{Idx: 1, Line: 1, Col: 2},
-		End:  TextPosition{Idx: 2, Line: 1, Col: 3},
+		Pos:  TextPosition{Offset: 1, Line: 1, Col: 2},
+		End:  TextPosition{Offset: 2, Line: 1, Col: 3},
 	}
 
 	if span != expectedSpan {
@@ -1262,7 +1261,7 @@ func TestScannerPeekSpanAfterAdvancement(t *testing.T) {
 	}
 
 	// Position should remain at second character
-	expectedPos := TextPosition{Idx: 1, Line: 1, Col: 2}
+	expectedPos := TextPosition{Offset: 1, Line: 1, Col: 2}
 	if scanner.TextPosition != expectedPos {
 		t.Errorf("position changed: expected %+v, got %+v", expectedPos, scanner.TextPosition)
 	}
@@ -1316,494 +1315,494 @@ func TestScannerPeekSpanConsistency(t *testing.T) {
 }
 
 func TestScannerNext(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    expected []rune
-  }{
-    {
-      name:     "empty string",
-      input:    "",
-      expected: []rune{EOF},
-    },
-    {
-      name:     "simple ASCII",
-      input:    "abc",
-      expected: []rune{'b', 'c', EOF},
-    },
-    {
-      name:     "UTF-8 characters",
-      input:    "αβγ",
-      expected: []rune{'β', 'γ', EOF},
-    },
-    {
-      name:     "single character",
-      input:    "a",
-      expected: []rune{EOF},
-    },
-    {
-      name:     "LF normalization",
-      input:    "a\nb",
-      expected: []rune{'\n', 'b', EOF},
-    },
-    {
-      name:     "CR normalization",
-      input:    "a\rb",
-      expected: []rune{'\n', 'b', EOF},
-    },
-    {
-      name:     "CRLF normalization",
-      input:    "a\r\nb",
-      expected: []rune{'\n', 'b', EOF},
-    },
-    {
-      name:     "escaped line break",
-      input:    "a\\\nb",
-      expected: []rune{'b', EOF},
-    },
-    {
-      name:     "regular backslash",
-      input:    "a\\b",
-      expected: []rune{'\\', 'b', EOF},
-    },
-    {
-      name:     "backslash at end",
-      input:    "a\\",
-      expected: []rune{'\\', EOF},
-    },
-    {
-      name:     "multiple line breaks",
-      input:    "a\n\r\n\rb",
-      expected: []rune{'\n', '\n', '\n', 'b', EOF},
-    },
-    {
-      name:     "escaped line break at end",
-      input:    "a\\\n",
-      expected: []rune{EOF},
-    },
-    {
-      name:     "multiple escaped line breaks",
-      input:    "a\\\n\\\nb",
-      expected: []rune{'b', EOF},
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		expected []rune
+	}{
+		{
+			name:     "empty string",
+			input:    "",
+			expected: []rune{EOF},
+		},
+		{
+			name:     "simple ASCII",
+			input:    "abc",
+			expected: []rune{'b', 'c', EOF},
+		},
+		{
+			name:     "UTF-8 characters",
+			input:    "αβγ",
+			expected: []rune{'β', 'γ', EOF},
+		},
+		{
+			name:     "single character",
+			input:    "a",
+			expected: []rune{EOF},
+		},
+		{
+			name:     "LF normalization",
+			input:    "a\nb",
+			expected: []rune{'\n', 'b', EOF},
+		},
+		{
+			name:     "CR normalization",
+			input:    "a\rb",
+			expected: []rune{'\n', 'b', EOF},
+		},
+		{
+			name:     "CRLF normalization",
+			input:    "a\r\nb",
+			expected: []rune{'\n', 'b', EOF},
+		},
+		{
+			name:     "escaped line break",
+			input:    "a\\\nb",
+			expected: []rune{'b', EOF},
+		},
+		{
+			name:     "regular backslash",
+			input:    "a\\b",
+			expected: []rune{'\\', 'b', EOF},
+		},
+		{
+			name:     "backslash at end",
+			input:    "a\\",
+			expected: []rune{'\\', EOF},
+		},
+		{
+			name:     "multiple line breaks",
+			input:    "a\n\r\n\rb",
+			expected: []rune{'\n', '\n', '\n', 'b', EOF},
+		},
+		{
+			name:     "escaped line break at end",
+			input:    "a\\\n",
+			expected: []rune{EOF},
+		},
+		{
+			name:     "multiple escaped line breaks",
+			input:    "a\\\n\\\nb",
+			expected: []rune{'b', EOF},
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      var result []rune
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			var result []rune
 
-      for {
-        r := scanner.Next()
-        result = append(result, r)
-        if r == EOF {
-          break
-        }
-      }
+			for {
+				r := scanner.Next()
+				result = append(result, r)
+				if r == EOF {
+					break
+				}
+			}
 
-      if len(result) != len(tt.expected) {
-        t.Errorf("expected %d runes, got %d", len(tt.expected), len(result))
-        return
-      }
+			if len(result) != len(tt.expected) {
+				t.Errorf("expected %d runes, got %d", len(tt.expected), len(result))
+				return
+			}
 
-      for i, expected := range tt.expected {
-        if result[i] != expected {
-          t.Errorf("at position %d: expected %q, got %q", i, expected, result[i])
-        }
-      }
-    })
-  }
+			for i, expected := range tt.expected {
+				if result[i] != expected {
+					t.Errorf("at position %d: expected %q, got %q", i, expected, result[i])
+				}
+			}
+		})
+	}
 }
 
 func TestScannerNextPosition(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    expected []TextPosition
-  }{
-    {
-      name:  "simple line and column tracking",
-      input: "ab\nc",
-      expected: []TextPosition{
-        {Idx: 1, Line: 1, Col: 2}, // after consuming 'a', next is 'b'
-        {Idx: 2, Line: 1, Col: 3}, // after consuming 'b', next is '\n'
-        {Idx: 3, Line: 2, Col: 1}, // after consuming '\n', next is 'c'
-      },
-    },
-    {
-      name:  "CR normalization position",
-      input: "a\rb",
-      expected: []TextPosition{
-        {Idx: 1, Line: 1, Col: 2}, // after consuming 'a', next is '\r' (normalized)
-        {Idx: 2, Line: 2, Col: 1}, // after consuming '\r', next is 'b'
-      },
-    },
-    {
-      name:  "CRLF normalization position",
-      input: "a\r\nb",
-      expected: []TextPosition{
-        {Idx: 1, Line: 1, Col: 2}, // after consuming 'a', next is '\r\n' (normalized)
-        {Idx: 3, Line: 2, Col: 1}, // after consuming '\r\n', next is 'b'
-      },
-    },
-    {
-      name:  "escaped line break position",
-      input: "a\\\nb",
-      expected: []TextPosition{
-        {Idx: 1, Line: 1, Col: 2}, // after consuming 'a', next is 'b' (escaped break skipped)
-      },
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		expected []TextPosition
+	}{
+		{
+			name:  "simple line and column tracking",
+			input: "ab\nc",
+			expected: []TextPosition{
+				{Offset: 1, Line: 1, Col: 2}, // after consuming 'a', next is 'b'
+				{Offset: 2, Line: 1, Col: 3}, // after consuming 'b', next is '\n'
+				{Offset: 3, Line: 2, Col: 1}, // after consuming '\n', next is 'c'
+			},
+		},
+		{
+			name:  "CR normalization position",
+			input: "a\rb",
+			expected: []TextPosition{
+				{Offset: 1, Line: 1, Col: 2}, // after consuming 'a', next is '\r' (normalized)
+				{Offset: 2, Line: 2, Col: 1}, // after consuming '\r', next is 'b'
+			},
+		},
+		{
+			name:  "CRLF normalization position",
+			input: "a\r\nb",
+			expected: []TextPosition{
+				{Offset: 1, Line: 1, Col: 2}, // after consuming 'a', next is '\r\n' (normalized)
+				{Offset: 3, Line: 2, Col: 1}, // after consuming '\r\n', next is 'b'
+			},
+		},
+		{
+			name:  "escaped line break position",
+			input: "a\\\nb",
+			expected: []TextPosition{
+				{Offset: 1, Line: 1, Col: 2}, // after consuming 'a', next is 'b' (escaped break skipped)
+			},
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
 
-      for i, expectedPos := range tt.expected {
-        scanner.Next()
-        if scanner.TextPosition != expectedPos {
-          t.Errorf("at step %d: expected position %+v, got %+v", i, expectedPos, scanner.TextPosition)
-        }
-      }
-    })
-  }
+			for i, expectedPos := range tt.expected {
+				scanner.Next()
+				if scanner.TextPosition != expectedPos {
+					t.Errorf("at step %d: expected position %+v, got %+v", i, expectedPos, scanner.TextPosition)
+				}
+			}
+		})
+	}
 }
 
 func TestScannerNextVsPopPeek(t *testing.T) {
-  tests := []struct {
-    name  string
-    input string
-  }{
-    {
-      name:  "simple ASCII",
-      input: "abc",
-    },
-    {
-      name:  "UTF-8 characters",
-      input: "αβγ",
-    },
-    {
-      name:  "mixed content",
-      input: "a\r\nb\\c",
-    },
-    {
-      name:  "escaped line break",
-      input: "a\\\nb",
-    },
-    {
-      name:  "empty string",
-      input: "",
-    },
-  }
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "simple ASCII",
+			input: "abc",
+		},
+		{
+			name:  "UTF-8 characters",
+			input: "αβγ",
+		},
+		{
+			name:  "mixed content",
+			input: "a\r\nb\\c",
+		},
+		{
+			name:  "escaped line break",
+			input: "a\\\nb",
+		},
+		{
+			name:  "empty string",
+			input: "",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner1 := NewScanner(tt.input)
-      scanner2 := NewScanner(tt.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner1 := NewScanner(tt.input)
+			scanner2 := NewScanner(tt.input)
 
-      for {
-        // Next should be equivalent to Pop() followed by Peek()
-        next := scanner1.Next()
-        
-        scanner2.Pop()
-        peek := scanner2.Peek()
+			for {
+				// Next should be equivalent to Pop() followed by Peek()
+				next := scanner1.Next()
 
-        if next != peek {
-          t.Errorf("next/pop+peek mismatch: next=%q, pop+peek=%q", next, peek)
-        }
+				scanner2.Pop()
+				peek := scanner2.Peek()
 
-        if next == EOF {
-          break
-        }
-      }
-    })
-  }
+				if next != peek {
+					t.Errorf("next/pop+peek mismatch: next=%q, pop+peek=%q", next, peek)
+				}
+
+				if next == EOF {
+					break
+				}
+			}
+		})
+	}
 }
 
 func TestScannerNextAtEOF(t *testing.T) {
-  scanner := NewScanner("a")
+	scanner := NewScanner("a")
 
-  // Next should return EOF when at end
-  next := scanner.Next()
-  if next != EOF {
-    t.Errorf("next at EOF: expected EOF, got %q", next)
-  }
+	// Next should return EOF when at end
+	next := scanner.Next()
+	if next != EOF {
+		t.Errorf("next at EOF: expected EOF, got %q", next)
+	}
 
-  // Multiple Next calls at EOF should return EOF
-  next = scanner.Next()
-  if next != EOF {
-    t.Errorf("next after EOF: expected EOF, got %q", next)
-  }
+	// Multiple Next calls at EOF should return EOF
+	next = scanner.Next()
+	if next != EOF {
+		t.Errorf("next after EOF: expected EOF, got %q", next)
+	}
 
-  // Position should remain at end
-  expectedPos := TextPosition{Idx: 1, Line: 1, Col: 2}
-  if scanner.TextPosition != expectedPos {
-    t.Errorf("position after EOF: expected %+v, got %+v", expectedPos, scanner.TextPosition)
-  }
+	// Position should remain at end
+	expectedPos := TextPosition{Offset: 1, Line: 1, Col: 2}
+	if scanner.TextPosition != expectedPos {
+		t.Errorf("position after EOF: expected %+v, got %+v", expectedPos, scanner.TextPosition)
+	}
 }
 
 func TestScannerNextEmptyString(t *testing.T) {
-  scanner := NewScanner("")
+	scanner := NewScanner("")
 
-  // Next on empty string should return EOF
-  next := scanner.Next()
-  if next != EOF {
-    t.Errorf("next on empty string: expected EOF, got %q", next)
-  }
+	// Next on empty string should return EOF
+	next := scanner.Next()
+	if next != EOF {
+		t.Errorf("next on empty string: expected EOF, got %q", next)
+	}
 
-  // Position should remain at start
-  expectedPos := TextPosition{Idx: 0, Line: 1, Col: 1}
-  if scanner.TextPosition != expectedPos {
-    t.Errorf("position after next on empty: expected %+v, got %+v", expectedPos, scanner.TextPosition)
-  }
+	// Position should remain at start
+	expectedPos := TextPosition{Offset: 0, Line: 1, Col: 1}
+	if scanner.TextPosition != expectedPos {
+		t.Errorf("position after next on empty: expected %+v, got %+v", expectedPos, scanner.TextPosition)
+	}
 }
 
 func TestScannerNextComplexNormalization(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    expected []rune
-  }{
-    {
-      name:     "backslash not followed by newline",
-      input:    "a\\b",
-      expected: []rune{'\\', 'b', EOF},
-    },
-    {
-      name:     "backslash at end",
-      input:    "a\\",
-      expected: []rune{'\\', EOF},
-    },
-    {
-      name:     "multiple escaped breaks",
-      input:    "a\\\n\\\nb",
-      expected: []rune{'b', EOF},
-    },
-    {
-      name:     "escaped break with CR",
-      input:    "a\\\rb",
-      expected: []rune{'b', EOF},
-    },
-    {
-      name:     "escaped break with CRLF",
-      input:    "a\\\r\nb",
-      expected: []rune{'b', EOF},
-    },
-    {
-      name:     "mixed line endings and escapes",
-      input:    "a\r\nb\\\nc\rd",
-      expected: []rune{'\n', 'b', 'c', '\n', 'd', EOF},
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		expected []rune
+	}{
+		{
+			name:     "backslash not followed by newline",
+			input:    "a\\b",
+			expected: []rune{'\\', 'b', EOF},
+		},
+		{
+			name:     "backslash at end",
+			input:    "a\\",
+			expected: []rune{'\\', EOF},
+		},
+		{
+			name:     "multiple escaped breaks",
+			input:    "a\\\n\\\nb",
+			expected: []rune{'b', EOF},
+		},
+		{
+			name:     "escaped break with CR",
+			input:    "a\\\rb",
+			expected: []rune{'b', EOF},
+		},
+		{
+			name:     "escaped break with CRLF",
+			input:    "a\\\r\nb",
+			expected: []rune{'b', EOF},
+		},
+		{
+			name:     "mixed line endings and escapes",
+			input:    "a\r\nb\\\nc\rd",
+			expected: []rune{'\n', 'b', 'c', '\n', 'd', EOF},
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      var result []rune
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			var result []rune
 
-      for {
-        r := scanner.Next()
-        result = append(result, r)
-        if r == EOF {
-          break
-        }
-      }
+			for {
+				r := scanner.Next()
+				result = append(result, r)
+				if r == EOF {
+					break
+				}
+			}
 
-      if len(result) != len(tt.expected) {
-        t.Errorf("expected %d runes, got %d", len(tt.expected), len(result))
-        return
-      }
+			if len(result) != len(tt.expected) {
+				t.Errorf("expected %d runes, got %d", len(tt.expected), len(result))
+				return
+			}
 
-      for i, expected := range tt.expected {
-        if result[i] != expected {
-          t.Errorf("at position %d: expected %q, got %q", i, expected, result[i])
-        }
-      }
-    })
-  }
+			for i, expected := range tt.expected {
+				if result[i] != expected {
+					t.Errorf("at position %d: expected %q, got %q", i, expected, result[i])
+				}
+			}
+		})
+	}
 }
 
 func TestScannerNextSpan(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    expected []RuneSpan
-  }{
-    {
-      name:  "empty string",
-      input: "",
-      expected: []RuneSpan{
-        {Rune: EOF, Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 0, Line: 1, Col: 1}},
-      },
-    },
-    {
-      name:  "simple ASCII",
-      input: "ab",
-      expected: []RuneSpan{
-        {Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
-        {Rune: EOF, Pos: TextPosition{Idx: 2, Line: 1, Col: 3}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
-      },
-    },
-    {
-      name:  "UTF-8 characters",
-      input: "αβ",
-      expected: []RuneSpan{
-        {Rune: 'β', Pos: TextPosition{Idx: 2, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 1, Col: 3}},
-        {Rune: EOF, Pos: TextPosition{Idx: 4, Line: 1, Col: 3}, End: TextPosition{Idx: 4, Line: 1, Col: 3}},
-      },
-    },
-    {
-      name:  "line break normalization",
-      input: "a\nb",
-      expected: []RuneSpan{
-        {Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 2, Col: 1}},
-        {Rune: 'b', Pos: TextPosition{Idx: 2, Line: 2, Col: 1}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
-        {Rune: EOF, Pos: TextPosition{Idx: 3, Line: 2, Col: 2}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
-      },
-    },
-    {
-      name:  "CRLF normalization",
-      input: "a\r\nb",
-      expected: []RuneSpan{
-        {Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 3, Line: 2, Col: 1}},
-        {Rune: 'b', Pos: TextPosition{Idx: 3, Line: 2, Col: 1}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
-        {Rune: EOF, Pos: TextPosition{Idx: 4, Line: 2, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
-      },
-    },
-    {
-      name:  "escaped line break",
-      input: "a\\\nb",
-      expected: []RuneSpan{
-        {Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
-        {Rune: EOF, Pos: TextPosition{Idx: 4, Line: 2, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
-      },
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		expected []RuneSpan
+	}{
+		{
+			name:  "empty string",
+			input: "",
+			expected: []RuneSpan{
+				{Rune: EOF, Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 0, Line: 1, Col: 1}},
+			},
+		},
+		{
+			name:  "simple ASCII",
+			input: "ab",
+			expected: []RuneSpan{
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
+				{Rune: EOF, Pos: TextPosition{Offset: 2, Line: 1, Col: 3}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
+			},
+		},
+		{
+			name:  "UTF-8 characters",
+			input: "αβ",
+			expected: []RuneSpan{
+				{Rune: 'β', Pos: TextPosition{Offset: 2, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 1, Col: 3}},
+				{Rune: EOF, Pos: TextPosition{Offset: 4, Line: 1, Col: 3}, End: TextPosition{Offset: 4, Line: 1, Col: 3}},
+			},
+		},
+		{
+			name:  "line break normalization",
+			input: "a\nb",
+			expected: []RuneSpan{
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 2, Line: 2, Col: 1}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
+				{Rune: EOF, Pos: TextPosition{Offset: 3, Line: 2, Col: 2}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
+			},
+		},
+		{
+			name:  "CRLF normalization",
+			input: "a\r\nb",
+			expected: []RuneSpan{
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 3, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 3, Line: 2, Col: 1}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
+				{Rune: EOF, Pos: TextPosition{Offset: 4, Line: 2, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
+			},
+		},
+		{
+			name:  "escaped line break",
+			input: "a\\\nb",
+			expected: []RuneSpan{
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
+				{Rune: EOF, Pos: TextPosition{Offset: 4, Line: 2, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
+			},
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      var result []RuneSpan
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			var result []RuneSpan
 
-      for {
-        span := scanner.NextSpan()
-        result = append(result, span)
-        if span.Rune == EOF {
-          break
-        }
-      }
+			for {
+				span := scanner.NextSpan()
+				result = append(result, span)
+				if span.Rune == EOF {
+					break
+				}
+			}
 
-      if len(result) != len(tt.expected) {
-        t.Errorf("expected %d spans, got %d", len(tt.expected), len(result))
-        return
-      }
+			if len(result) != len(tt.expected) {
+				t.Errorf("expected %d spans, got %d", len(tt.expected), len(result))
+				return
+			}
 
-      for i, expected := range tt.expected {
-        if result[i] != expected {
-          t.Errorf("at position %d: expected %+v, got %+v", i, expected, result[i])
-        }
-      }
-    })
-  }
+			for i, expected := range tt.expected {
+				if result[i] != expected {
+					t.Errorf("at position %d: expected %+v, got %+v", i, expected, result[i])
+				}
+			}
+		})
+	}
 }
 
 func TestScannerNextSpanVsPopSpanPeekSpan(t *testing.T) {
-  tests := []struct {
-    name  string
-    input string
-  }{
-    {
-      name:  "simple ASCII",
-      input: "abc",
-    },
-    {
-      name:  "UTF-8 characters",
-      input: "αβγ",
-    },
-    {
-      name:  "mixed content",
-      input: "a\r\nb\\c",
-    },
-    {
-      name:  "escaped line break",
-      input: "a\\\nb",
-    },
-    {
-      name:  "empty string",
-      input: "",
-    },
-  }
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "simple ASCII",
+			input: "abc",
+		},
+		{
+			name:  "UTF-8 characters",
+			input: "αβγ",
+		},
+		{
+			name:  "mixed content",
+			input: "a\r\nb\\c",
+		},
+		{
+			name:  "escaped line break",
+			input: "a\\\nb",
+		},
+		{
+			name:  "empty string",
+			input: "",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner1 := NewScanner(tt.input)
-      scanner2 := NewScanner(tt.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner1 := NewScanner(tt.input)
+			scanner2 := NewScanner(tt.input)
 
-      for {
-        // NextSpan should be equivalent to PopSpan() followed by PeekSpan()
-        nextSpan := scanner1.NextSpan()
-        
-        scanner2.PopSpan()
-        peekSpan := scanner2.PeekSpan()
+			for {
+				// NextSpan should be equivalent to PopSpan() followed by PeekSpan()
+				nextSpan := scanner1.NextSpan()
 
-        if nextSpan != peekSpan {
-          t.Errorf("nextSpan/popSpan+peekSpan mismatch: nextSpan=%+v, popSpan+peekSpan=%+v", nextSpan, peekSpan)
-        }
+				scanner2.PopSpan()
+				peekSpan := scanner2.PeekSpan()
 
-        if nextSpan.Rune == EOF {
-          break
-        }
-      }
-    })
-  }
+				if nextSpan != peekSpan {
+					t.Errorf("nextSpan/popSpan+peekSpan mismatch: nextSpan=%+v, popSpan+peekSpan=%+v", nextSpan, peekSpan)
+				}
+
+				if nextSpan.Rune == EOF {
+					break
+				}
+			}
+		})
+	}
 }
 
 func TestScannerNextSpanPosition(t *testing.T) {
-  scanner := NewScanner("abc")
+	scanner := NewScanner("abc")
 
-  // Initial position
-  expectedPos := TextPosition{Idx: 0, Line: 1, Col: 1}
-  if scanner.TextPosition != expectedPos {
-    t.Errorf("initial position: expected %+v, got %+v", expectedPos, scanner.TextPosition)
-  }
+	// Initial position
+	expectedPos := TextPosition{Offset: 0, Line: 1, Col: 1}
+	if scanner.TextPosition != expectedPos {
+		t.Errorf("initial position: expected %+v, got %+v", expectedPos, scanner.TextPosition)
+	}
 
-  // NextSpan should advance position
-  span := scanner.NextSpan()
-  expectedPos = TextPosition{Idx: 1, Line: 1, Col: 2}
-  if scanner.TextPosition != expectedPos {
-    t.Errorf("after NextSpan: expected %+v, got %+v", expectedPos, scanner.TextPosition)
-  }
+	// NextSpan should advance position
+	span := scanner.NextSpan()
+	expectedPos = TextPosition{Offset: 1, Line: 1, Col: 2}
+	if scanner.TextPosition != expectedPos {
+		t.Errorf("after NextSpan: expected %+v, got %+v", expectedPos, scanner.TextPosition)
+	}
 
-  // Verify span has correct positions
-  expectedSpan := RuneSpan{
-    Rune: 'b',
-    Pos:  TextPosition{Idx: 1, Line: 1, Col: 2},
-    End:  TextPosition{Idx: 2, Line: 1, Col: 3},
-  }
-  if span != expectedSpan {
-    t.Errorf("expected span %+v, got %+v", expectedSpan, span)
-  }
+	// Verify span has correct positions
+	expectedSpan := RuneSpan{
+		Rune: 'b',
+		Pos:  TextPosition{Offset: 1, Line: 1, Col: 2},
+		End:  TextPosition{Offset: 2, Line: 1, Col: 3},
+	}
+	if span != expectedSpan {
+		t.Errorf("expected span %+v, got %+v", expectedSpan, span)
+	}
 }
 
 func TestScannerNextSpanAtEOF(t *testing.T) {
-  scanner := NewScanner("a")
+	scanner := NewScanner("a")
 
-  // NextSpan should return EOF span when at end
-  span := scanner.NextSpan()
-  expectedSpan := RuneSpan{
-    Rune: EOF,
-    Pos:  TextPosition{Idx: 1, Line: 1, Col: 2},
-    End:  TextPosition{Idx: 1, Line: 1, Col: 2},
-  }
-  if span != expectedSpan {
-    t.Errorf("NextSpan at EOF: expected %+v, got %+v", expectedSpan, span)
-  }
+	// NextSpan should return EOF span when at end
+	span := scanner.NextSpan()
+	expectedSpan := RuneSpan{
+		Rune: EOF,
+		Pos:  TextPosition{Offset: 1, Line: 1, Col: 2},
+		End:  TextPosition{Offset: 1, Line: 1, Col: 2},
+	}
+	if span != expectedSpan {
+		t.Errorf("NextSpan at EOF: expected %+v, got %+v", expectedSpan, span)
+	}
 
-  // Position should remain at end
-  expectedPos := TextPosition{Idx: 1, Line: 1, Col: 2}
-  if scanner.TextPosition != expectedPos {
-    t.Errorf("position after NextSpan at EOF: expected %+v, got %+v", expectedPos, scanner.TextPosition)
-  }
+	// Position should remain at end
+	expectedPos := TextPosition{Offset: 1, Line: 1, Col: 2}
+	if scanner.TextPosition != expectedPos {
+		t.Errorf("position after NextSpan at EOF: expected %+v, got %+v", expectedPos, scanner.TextPosition)
+	}
 }
 
 func TestScannerMark(t *testing.T) {
@@ -2037,285 +2036,284 @@ func TestScannerMarkAfterMark(t *testing.T) {
 	}
 }
 
-
 func TestScannerMarked(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    actions  []string // "mark", "pop", "peek", "next"
-    expected []TextPosition
-  }{
-    {
-      name:     "initial marked position",
-      input:    "abc",
-      actions:  []string{"marked"},
-      expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
-    },
-    {
-      name:     "marked position after mark",
-      input:    "abc",
-      actions:  []string{"pop", "mark", "marked"},
-      expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
-    },
-    {
-      name:     "marked position unchanged after pop",
-      input:    "abc",
-      actions:  []string{"mark", "pop", "marked"},
-      expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
-    },
-    {
-      name:     "marked position unchanged after peek",
-      input:    "abc",
-      actions:  []string{"mark", "peek", "marked"},
-      expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
-    },
-    {
-      name:     "marked position unchanged after next",
-      input:    "abc",
-      actions:  []string{"mark", "next", "marked"},
-      expected: []TextPosition{{Idx: 0, Line: 1, Col: 1}},
-    },
-    {
-      name:     "multiple marks",
-      input:    "abcdef",
-      actions:  []string{"pop", "mark", "marked", "pop", "pop", "marked", "mark", "marked"},
-      expected: []TextPosition{
-        {Idx: 1, Line: 1, Col: 2}, // after first mark
-        {Idx: 1, Line: 1, Col: 2}, // unchanged after pops
-        {Idx: 3, Line: 1, Col: 4}, // after second mark
-      },
-    },
-    {
-      name:     "mark at EOF",
-      input:    "a",
-      actions:  []string{"pop", "mark", "marked"},
-      expected: []TextPosition{{Idx: 1, Line: 1, Col: 2}},
-    },
-    {
-      name:     "mark with line breaks",
-      input:    "a\nb\nc",
-      actions:  []string{"pop", "pop", "mark", "marked"},
-      expected: []TextPosition{{Idx: 2, Line: 2, Col: 1}},
-    },
-    {
-      name:     "mark with CRLF normalization",
-      input:    "a\r\nb",
-      actions:  []string{"pop", "pop", "mark", "marked"},
-      expected: []TextPosition{{Idx: 3, Line: 2, Col: 1}},
-    },
-    {
-      name:     "mark with escaped line break",
-      input:    "a\\\nb",
-      actions:  []string{"pop", "pop", "mark", "marked"},
-      expected: []TextPosition{{Idx: 4, Line: 2, Col: 2}},
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		actions  []string // "mark", "pop", "peek", "next"
+		expected []TextPosition
+	}{
+		{
+			name:     "initial marked position",
+			input:    "abc",
+			actions:  []string{"marked"},
+			expected: []TextPosition{{Offset: 0, Line: 1, Col: 1}},
+		},
+		{
+			name:     "marked position after mark",
+			input:    "abc",
+			actions:  []string{"pop", "mark", "marked"},
+			expected: []TextPosition{{Offset: 1, Line: 1, Col: 2}},
+		},
+		{
+			name:     "marked position unchanged after pop",
+			input:    "abc",
+			actions:  []string{"mark", "pop", "marked"},
+			expected: []TextPosition{{Offset: 0, Line: 1, Col: 1}},
+		},
+		{
+			name:     "marked position unchanged after peek",
+			input:    "abc",
+			actions:  []string{"mark", "peek", "marked"},
+			expected: []TextPosition{{Offset: 0, Line: 1, Col: 1}},
+		},
+		{
+			name:     "marked position unchanged after next",
+			input:    "abc",
+			actions:  []string{"mark", "next", "marked"},
+			expected: []TextPosition{{Offset: 0, Line: 1, Col: 1}},
+		},
+		{
+			name:    "multiple marks",
+			input:   "abcdef",
+			actions: []string{"pop", "mark", "marked", "pop", "pop", "marked", "mark", "marked"},
+			expected: []TextPosition{
+				{Offset: 1, Line: 1, Col: 2}, // after first mark
+				{Offset: 1, Line: 1, Col: 2}, // unchanged after pops
+				{Offset: 3, Line: 1, Col: 4}, // after second mark
+			},
+		},
+		{
+			name:     "mark at EOF",
+			input:    "a",
+			actions:  []string{"pop", "mark", "marked"},
+			expected: []TextPosition{{Offset: 1, Line: 1, Col: 2}},
+		},
+		{
+			name:     "mark with line breaks",
+			input:    "a\nb\nc",
+			actions:  []string{"pop", "pop", "mark", "marked"},
+			expected: []TextPosition{{Offset: 2, Line: 2, Col: 1}},
+		},
+		{
+			name:     "mark with CRLF normalization",
+			input:    "a\r\nb",
+			actions:  []string{"pop", "pop", "mark", "marked"},
+			expected: []TextPosition{{Offset: 3, Line: 2, Col: 1}},
+		},
+		{
+			name:     "mark with escaped line break",
+			input:    "a\\\nb",
+			actions:  []string{"pop", "pop", "mark", "marked"},
+			expected: []TextPosition{{Offset: 4, Line: 2, Col: 2}},
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      expectedIdx := 0
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			expectedIdx := 0
 
-      for _, action := range tt.actions {
-        switch action {
-        case "mark":
-          scanner.Mark()
-        case "pop":
-          scanner.Pop()
-        case "peek":
-          scanner.Peek()
-        case "next":
-          scanner.Next()
-        case "marked":
-          if expectedIdx >= len(tt.expected) {
-            t.Errorf("unexpected marked call at action %s", action)
-            continue
-          }
-          marked := scanner.Marked()
-          expected := tt.expected[expectedIdx]
-          if marked != expected {
-            t.Errorf("marked position: expected %+v, got %+v", expected, marked)
-          }
-          expectedIdx++
-        }
-      }
-    })
-  }
+			for _, action := range tt.actions {
+				switch action {
+				case "mark":
+					scanner.Mark()
+				case "pop":
+					scanner.Pop()
+				case "peek":
+					scanner.Peek()
+				case "next":
+					scanner.Next()
+				case "marked":
+					if expectedIdx >= len(tt.expected) {
+						t.Errorf("unexpected marked call at action %s", action)
+						continue
+					}
+					marked := scanner.Marked()
+					expected := tt.expected[expectedIdx]
+					if marked != expected {
+						t.Errorf("marked position: expected %+v, got %+v", expected, marked)
+					}
+					expectedIdx++
+				}
+			}
+		})
+	}
 }
 
 func TestScannerMarkedEmpty(t *testing.T) {
-  scanner := NewScanner("")
-  
-  // Initial marked position should be at start
-  marked := scanner.Marked()
-  expected := TextPosition{Idx: 0, Line: 1, Col: 1}
-  if marked != expected {
-    t.Errorf("initial marked position: expected %+v, got %+v", expected, marked)
-  }
+	scanner := NewScanner("")
 
-  // Mark at EOF should work
-  scanner.Mark()
-  marked = scanner.Marked()
-  if marked != expected {
-    t.Errorf("marked at EOF: expected %+v, got %+v", expected, marked)
-  }
+	// Initial marked position should be at start
+	marked := scanner.Marked()
+	expected := TextPosition{Offset: 0, Line: 1, Col: 1}
+	if marked != expected {
+		t.Errorf("initial marked position: expected %+v, got %+v", expected, marked)
+	}
+
+	// Mark at EOF should work
+	scanner.Mark()
+	marked = scanner.Marked()
+	if marked != expected {
+		t.Errorf("marked at EOF: expected %+v, got %+v", expected, marked)
+	}
 }
 
 func TestScannerMarkedConsistency(t *testing.T) {
-  scanner := NewScanner("hello\nworld")
-  
-  // Mark at start
-  scanner.Mark()
-  initialMarked := scanner.Marked()
-  
-  // Advance scanner
-  scanner.Pop() // 'h'
-  scanner.Pop() // 'e'
-  scanner.Pop() // 'l'
-  
-  // Marked should be unchanged
-  marked := scanner.Marked()
-  if marked != initialMarked {
-    t.Errorf("marked position changed: expected %+v, got %+v", initialMarked, marked)
-  }
-  
-  // Mark at current position
-  scanner.Mark()
-  newMarked := scanner.Marked()
-  expectedPos := TextPosition{Idx: 3, Line: 1, Col: 4}
-  if newMarked != expectedPos {
-    t.Errorf("new marked position: expected %+v, got %+v", expectedPos, newMarked)
-  }
-  
-  // Multiple calls should return same position
-  for i := 0; i < 3; i++ {
-    if scanner.Marked() != newMarked {
-      t.Errorf("marked position changed on call %d", i)
-    }
-  }
+	scanner := NewScanner("hello\nworld")
+
+	// Mark at start
+	scanner.Mark()
+	initialMarked := scanner.Marked()
+
+	// Advance scanner
+	scanner.Pop() // 'h'
+	scanner.Pop() // 'e'
+	scanner.Pop() // 'l'
+
+	// Marked should be unchanged
+	marked := scanner.Marked()
+	if marked != initialMarked {
+		t.Errorf("marked position changed: expected %+v, got %+v", initialMarked, marked)
+	}
+
+	// Mark at current position
+	scanner.Mark()
+	newMarked := scanner.Marked()
+	expectedPos := TextPosition{Offset: 3, Line: 1, Col: 4}
+	if newMarked != expectedPos {
+		t.Errorf("new marked position: expected %+v, got %+v", expectedPos, newMarked)
+	}
+
+	// Multiple calls should return same position
+	for i := 0; i < 3; i++ {
+		if scanner.Marked() != newMarked {
+			t.Errorf("marked position changed on call %d", i)
+		}
+	}
 }
 
 func TestScannerMarkedWithUTF8(t *testing.T) {
-  scanner := NewScanner("αβγ")
-  
-  // Mark at start
-  scanner.Mark()
-  initialMarked := scanner.Marked()
-  expected := TextPosition{Idx: 0, Line: 1, Col: 1}
-  if initialMarked != expected {
-    t.Errorf("initial marked: expected %+v, got %+v", expected, initialMarked)
-  }
-  
-  // Pop first UTF-8 character
-  scanner.Pop() // 'α'
-  
-  // Mark after UTF-8 character
-  scanner.Mark()
-  marked := scanner.Marked()
-  expected = TextPosition{Idx: 2, Line: 1, Col: 2} // 'α' is 2 bytes
-  if marked != expected {
-    t.Errorf("marked after UTF-8: expected %+v, got %+v", expected, marked)
-  }
+	scanner := NewScanner("αβγ")
+
+	// Mark at start
+	scanner.Mark()
+	initialMarked := scanner.Marked()
+	expected := TextPosition{Offset: 0, Line: 1, Col: 1}
+	if initialMarked != expected {
+		t.Errorf("initial marked: expected %+v, got %+v", expected, initialMarked)
+	}
+
+	// Pop first UTF-8 character
+	scanner.Pop() // 'α'
+
+	// Mark after UTF-8 character
+	scanner.Mark()
+	marked := scanner.Marked()
+	expected = TextPosition{Offset: 2, Line: 1, Col: 2} // 'α' is 2 bytes
+	if marked != expected {
+		t.Errorf("marked after UTF-8: expected %+v, got %+v", expected, marked)
+	}
 }
 
 func TestScannerMarkedWithComplexNormalization(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    popCount int
-    expected TextPosition
-  }{
-    {
-      name:     "after CR normalization",
-      input:    "a\rb",
-      popCount: 2,
-      expected: TextPosition{Idx: 2, Line: 2, Col: 1},
-    },
-    {
-      name:     "after CRLF normalization",
-      input:    "a\r\nb",
-      popCount: 2,
-      expected: TextPosition{Idx: 3, Line: 2, Col: 1},
-    },
-    {
-      name:     "after escaped line break",
-      input:    "a\\\nb",
-      popCount: 2,
-      expected: TextPosition{Idx: 4, Line: 2, Col: 2},
-    },
-    {
-      name:     "after multiple escaped breaks",
-      input:    "a\\\n\\\nb",
-      popCount: 2,
-      expected: TextPosition{Idx: 6, Line: 3, Col: 2},
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		popCount int
+		expected TextPosition
+	}{
+		{
+			name:     "after CR normalization",
+			input:    "a\rb",
+			popCount: 2,
+			expected: TextPosition{Offset: 2, Line: 2, Col: 1},
+		},
+		{
+			name:     "after CRLF normalization",
+			input:    "a\r\nb",
+			popCount: 2,
+			expected: TextPosition{Offset: 3, Line: 2, Col: 1},
+		},
+		{
+			name:     "after escaped line break",
+			input:    "a\\\nb",
+			popCount: 2,
+			expected: TextPosition{Offset: 4, Line: 2, Col: 2},
+		},
+		{
+			name:     "after multiple escaped breaks",
+			input:    "a\\\n\\\nb",
+			popCount: 2,
+			expected: TextPosition{Offset: 6, Line: 3, Col: 2},
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      
-      // Pop specified number of times
-      for i := 0; i < tt.popCount; i++ {
-        scanner.Pop()
-      }
-      
-      // Mark at current position
-      scanner.Mark()
-      marked := scanner.Marked()
-      
-      if marked != tt.expected {
-        t.Errorf("marked after %d pops: expected %+v, got %+v", tt.popCount, tt.expected, marked)
-      }
-    })
-  }
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+
+			// Pop specified number of times
+			for i := 0; i < tt.popCount; i++ {
+				scanner.Pop()
+			}
+
+			// Mark at current position
+			scanner.Mark()
+			marked := scanner.Marked()
+
+			if marked != tt.expected {
+				t.Errorf("marked after %d pops: expected %+v, got %+v", tt.popCount, tt.expected, marked)
+			}
+		})
+	}
 }
 
 func TestScannerMarkedImmutability(t *testing.T) {
-  scanner := NewScanner("test")
-  
-  // Mark and get position
-  scanner.Mark()
-  marked1 := scanner.Marked()
-  
-  // Modify the returned position
-  marked1.Idx = 999
-  marked1.Line = 999
-  marked1.Col = 999
-  
-  // Verify scanner's marked position is unchanged
-  marked2 := scanner.Marked()
-  expected := TextPosition{Idx: 0, Line: 1, Col: 1}
-  if marked2 != expected {
-    t.Errorf("marked position was mutated: expected %+v, got %+v", expected, marked2)
-  }
+	scanner := NewScanner("test")
+
+	// Mark and get position
+	scanner.Mark()
+	marked1 := scanner.Marked()
+
+	// Modify the returned position
+	marked1.Offset = 999
+	marked1.Line = 999
+	marked1.Col = 999
+
+	// Verify scanner's marked position is unchanged
+	marked2 := scanner.Marked()
+	expected := TextPosition{Offset: 0, Line: 1, Col: 1}
+	if marked2 != expected {
+		t.Errorf("marked position was mutated: expected %+v, got %+v", expected, marked2)
+	}
 }
 
 func TestScannerMarkedAfterMarkReset(t *testing.T) {
-  scanner := NewScanner("abcdef")
-  
-  // Advance and mark
-  scanner.Pop() // 'a'
-  scanner.Pop() // 'b'
-  scanner.Mark()
-  firstMark := scanner.Marked()
-  
-  // Advance more and mark again
-  scanner.Pop() // 'c'
-  scanner.Pop() // 'd'
-  scanner.Mark()
-  secondMark := scanner.Marked()
-  
-  // Verify marks are different
-  if firstMark == secondMark {
-    t.Errorf("marks should be different: first=%+v, second=%+v", firstMark, secondMark)
-  }
-  
-  // Verify current marked position is the second mark
-  current := scanner.Marked()
-  if current != secondMark {
-    t.Errorf("current marked should be second mark: expected %+v, got %+v", secondMark, current)
-  }
+	scanner := NewScanner("abcdef")
+
+	// Advance and mark
+	scanner.Pop() // 'a'
+	scanner.Pop() // 'b'
+	scanner.Mark()
+	firstMark := scanner.Marked()
+
+	// Advance more and mark again
+	scanner.Pop() // 'c'
+	scanner.Pop() // 'd'
+	scanner.Mark()
+	secondMark := scanner.Marked()
+
+	// Verify marks are different
+	if firstMark == secondMark {
+		t.Errorf("marks should be different: first=%+v, second=%+v", firstMark, secondMark)
+	}
+
+	// Verify current marked position is the second mark
+	current := scanner.Marked()
+	if current != secondMark {
+		t.Errorf("current marked should be second mark: expected %+v, got %+v", secondMark, current)
+	}
 }
 
 func TestScannerSlice(t *testing.T) {
@@ -2601,481 +2599,481 @@ func TestScannerSliceComplexFlag(t *testing.T) {
 }
 
 func TestScannerSliceIncl(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    popCount int
-    expected string
-  }{
-    {
-      name:     "empty string",
-      input:    "",
-      popCount: 0,
-      expected: "",
-    },
-    {
-      name:     "simple ASCII",
-      input:    "abc",
-      popCount: 2,
-      expected: "abc",
-    },
-    {
-      name:     "UTF-8 characters",
-      input:    "αβγ",
-      popCount: 2,
-      expected: "αβγ",
-    },
-    {
-      name:     "single character",
-      input:    "a",
-      popCount: 0,
-      expected: "a",
-    },
-    {
-      name:     "full string",
-      input:    "hello",
-      popCount: 4,
-      expected: "hello",
-    },
-    {
-      name:     "LF normalization",
-      input:    "a\nb",
-      popCount: 2,
-      expected: "a\nb",
-    },
-    {
-      name:     "CR normalization",
-      input:    "a\rb",
-      popCount: 2,
-      expected: "a\nb",
-    },
-    {
-      name:     "CRLF normalization",
-      input:    "a\r\nb",
-      popCount: 2,
-      expected: "a\nb",
-    },
-    {
-      name:     "escaped line break",
-      input:    "a\\\nb",
-      popCount: 1,
-      expected: "ab",
-    },
-    {
-      name:     "regular backslash",
-      input:    "a\\b",
-      popCount: 2,
-      expected: "a\\b",
-    },
-    {
-      name:     "backslash at end",
-      input:    "a\\",
-      popCount: 1,
-      expected: "a\\",
-    },
-    {
-      name:     "multiple line breaks",
-      input:    "a\n\r\n\rb",
-      popCount: 4,
-      expected: "a\n\n\nb",
-    },
-    {
-      name:     "multiple escaped line breaks",
-      input:    "a\\\n\\\nb",
-      popCount: 1,
-      expected: "ab",
-    },
-    {
-      name:     "mixed content",
-      input:    "hello\r\nworld\\\ncontinued",
-      popCount: 19,
-      expected: "hello\nworldcontinued",
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		popCount int
+		expected string
+	}{
+		{
+			name:     "empty string",
+			input:    "",
+			popCount: 0,
+			expected: "",
+		},
+		{
+			name:     "simple ASCII",
+			input:    "abc",
+			popCount: 2,
+			expected: "abc",
+		},
+		{
+			name:     "UTF-8 characters",
+			input:    "αβγ",
+			popCount: 2,
+			expected: "αβγ",
+		},
+		{
+			name:     "single character",
+			input:    "a",
+			popCount: 0,
+			expected: "a",
+		},
+		{
+			name:     "full string",
+			input:    "hello",
+			popCount: 4,
+			expected: "hello",
+		},
+		{
+			name:     "LF normalization",
+			input:    "a\nb",
+			popCount: 2,
+			expected: "a\nb",
+		},
+		{
+			name:     "CR normalization",
+			input:    "a\rb",
+			popCount: 2,
+			expected: "a\nb",
+		},
+		{
+			name:     "CRLF normalization",
+			input:    "a\r\nb",
+			popCount: 2,
+			expected: "a\nb",
+		},
+		{
+			name:     "escaped line break",
+			input:    "a\\\nb",
+			popCount: 1,
+			expected: "ab",
+		},
+		{
+			name:     "regular backslash",
+			input:    "a\\b",
+			popCount: 2,
+			expected: "a\\b",
+		},
+		{
+			name:     "backslash at end",
+			input:    "a\\",
+			popCount: 1,
+			expected: "a\\",
+		},
+		{
+			name:     "multiple line breaks",
+			input:    "a\n\r\n\rb",
+			popCount: 4,
+			expected: "a\n\n\nb",
+		},
+		{
+			name:     "multiple escaped line breaks",
+			input:    "a\\\n\\\nb",
+			popCount: 1,
+			expected: "ab",
+		},
+		{
+			name:     "mixed content",
+			input:    "hello\r\nworld\\\ncontinued",
+			popCount: 19,
+			expected: "hello\nworldcontinued",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      scanner.Mark()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			scanner.Mark()
 
-      for i := 0; i < tt.popCount; i++ {
-        scanner.Pop()
-      }
+			for i := 0; i < tt.popCount; i++ {
+				scanner.Pop()
+			}
 
-      result := scanner.SliceIncl()
-      if result != tt.expected {
-        t.Errorf("expected %q, got %q", tt.expected, result)
-      }
-    })
-  }
+			result := scanner.SliceInc()
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
+	}
 }
 
 func TestScannerSliceInclWithMarkAfterAdvancement(t *testing.T) {
-  tests := []struct {
-    name       string
-    input      string
-    markAt     int
-    popCount   int
-    expected   string
-  }{
-    {
-      name:       "mark in middle",
-      input:      "abcde",
-      markAt:     2,
-      popCount:   2,
-      expected:   "cde",
-    },
-    {
-      name:       "mark at end",
-      input:      "abc",
-      markAt:     3,
-      popCount:   0,
-      expected:   "",
-    },
-    {
-      name:       "mark with UTF-8",
-      input:      "αβγδε",
-      markAt:     2,
-      popCount:   2,
-      expected:   "γδε",
-    },
-    {
-      name:       "mark with line breaks",
-      input:      "a\nb\nc",
-      markAt:     2,
-      popCount:   2,
-      expected:   "b\nc",
-    },
-    {
-      name:       "mark with escaped breaks",
-      input:      "a\\\nb\\\nc",
-      markAt:     1,
-      popCount:   1,
-      expected:   "bc",
-    },
-    {
-      name:       "mark with normalization",
-      input:      "a\r\nb\rc",
-      markAt:     1,
-      popCount:   3,
-      expected:   "\nb\nc",
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		markAt   int
+		popCount int
+		expected string
+	}{
+		{
+			name:     "mark in middle",
+			input:    "abcde",
+			markAt:   2,
+			popCount: 2,
+			expected: "cde",
+		},
+		{
+			name:     "mark at end",
+			input:    "abc",
+			markAt:   3,
+			popCount: 0,
+			expected: "",
+		},
+		{
+			name:     "mark with UTF-8",
+			input:    "αβγδε",
+			markAt:   2,
+			popCount: 2,
+			expected: "γδε",
+		},
+		{
+			name:     "mark with line breaks",
+			input:    "a\nb\nc",
+			markAt:   2,
+			popCount: 2,
+			expected: "b\nc",
+		},
+		{
+			name:     "mark with escaped breaks",
+			input:    "a\\\nb\\\nc",
+			markAt:   1,
+			popCount: 1,
+			expected: "bc",
+		},
+		{
+			name:     "mark with normalization",
+			input:    "a\r\nb\rc",
+			markAt:   1,
+			popCount: 3,
+			expected: "\nb\nc",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
 
-      // Advance to mark position
-      for i := 0; i < tt.markAt; i++ {
-        scanner.Pop()
-      }
+			// Advance to mark position
+			for i := 0; i < tt.markAt; i++ {
+				scanner.Pop()
+			}
 
-      scanner.Mark()
+			scanner.Mark()
 
-      // Pop additional characters
-      for i := 0; i < tt.popCount; i++ {
-        scanner.Pop()
-      }
+			// Pop additional characters
+			for i := 0; i < tt.popCount; i++ {
+				scanner.Pop()
+			}
 
-      result := scanner.SliceIncl()
-      if result != tt.expected {
-        t.Errorf("expected %q, got %q", tt.expected, result)
-      }
-    })
-  }
+			result := scanner.SliceInc()
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
+	}
 }
 
 func TestScannerSliceInclVsSlice(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    popCount int
-  }{
-    {
-      name:     "simple ASCII",
-      input:    "abcde",
-      popCount: 3,
-    },
-    {
-      name:     "UTF-8 characters",
-      input:    "αβγδε",
-      popCount: 3,
-    },
-    {
-      name:     "with line breaks",
-      input:    "a\nb\nc",
-      popCount: 3,
-    },
-    {
-      name:     "with normalization",
-      input:    "a\r\nb\rc",
-      popCount: 3,
-    },
-    {
-      name:     "with escaped breaks",
-      input:    "a\\\nb\\\nc",
-      popCount: 2,
-    },
-    {
-      name:     "empty string",
-      input:    "",
-      popCount: 0,
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		popCount int
+	}{
+		{
+			name:     "simple ASCII",
+			input:    "abcde",
+			popCount: 3,
+		},
+		{
+			name:     "UTF-8 characters",
+			input:    "αβγδε",
+			popCount: 3,
+		},
+		{
+			name:     "with line breaks",
+			input:    "a\nb\nc",
+			popCount: 3,
+		},
+		{
+			name:     "with normalization",
+			input:    "a\r\nb\rc",
+			popCount: 3,
+		},
+		{
+			name:     "with escaped breaks",
+			input:    "a\\\nb\\\nc",
+			popCount: 2,
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			popCount: 0,
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner1 := NewScanner(tt.input)
-      scanner2 := NewScanner(tt.input)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner1 := NewScanner(tt.input)
+			scanner2 := NewScanner(tt.input)
 
-      scanner1.Mark()
-      scanner2.Mark()
+			scanner1.Mark()
+			scanner2.Mark()
 
-      for i := 0; i < tt.popCount; i++ {
-        scanner1.Pop()
-        scanner2.Pop()
-      }
+			for i := 0; i < tt.popCount; i++ {
+				scanner1.Pop()
+				scanner2.Pop()
+			}
 
-      slice := scanner1.Slice()
-      sliceIncl := scanner2.SliceIncl()
+			slice := scanner1.Slice()
+			sliceIncl := scanner2.SliceInc()
 
-      // SliceIncl should include one more rune than Slice
-      if tt.popCount > 0 && !strings.HasPrefix(sliceIncl, slice) {
-        t.Errorf("SliceIncl should start with Slice result: slice=%q, sliceIncl=%q", slice, sliceIncl)
-      }
-    })
-  }
+			// SliceIncl should include one more rune than Slice
+			if tt.popCount > 0 && !strings.HasPrefix(sliceIncl, slice) {
+				t.Errorf("SliceIncl should start with Slice result: slice=%q, sliceIncl=%q", slice, sliceIncl)
+			}
+		})
+	}
 }
 
 func TestScannerSliceInclComplexNormalization(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    popCount int
-    expected string
-  }{
-    {
-      name:     "CRLF followed by escaped break",
-      input:    "a\r\nb\\\nc",
-      popCount: 3,
-      expected: "a\nbc",
-    },
-    {
-      name:     "escaped CRLF",
-      input:    "a\\\r\nb",
-      popCount: 1,
-      expected: "ab",
-    },
-    {
-      name:     "escaped CR",
-      input:    "a\\\rb",
-      popCount: 1,
-      expected: "ab",
-    },
-    {
-      name:     "multiple consecutive escapes",
-      input:    "a\\\n\\\n\\\nb",
-      popCount: 1,
-      expected: "ab",
-    },
-    {
-      name:     "mixed line endings",
-      input:    "a\r\nb\nc\rd",
-      popCount: 6,
-      expected: "a\nb\nc\nd",
-    },
-    {
-      name:     "backslash not followed by newline",
-      input:    "a\\b\\c",
-      popCount: 4,
-      expected: "a\\b\\c",
-    },
-    {
-      name:     "backslash at end of string",
-      input:    "abc\\",
-      popCount: 3,
-      expected: "abc\\",
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		popCount int
+		expected string
+	}{
+		{
+			name:     "CRLF followed by escaped break",
+			input:    "a\r\nb\\\nc",
+			popCount: 3,
+			expected: "a\nbc",
+		},
+		{
+			name:     "escaped CRLF",
+			input:    "a\\\r\nb",
+			popCount: 1,
+			expected: "ab",
+		},
+		{
+			name:     "escaped CR",
+			input:    "a\\\rb",
+			popCount: 1,
+			expected: "ab",
+		},
+		{
+			name:     "multiple consecutive escapes",
+			input:    "a\\\n\\\n\\\nb",
+			popCount: 1,
+			expected: "ab",
+		},
+		{
+			name:     "mixed line endings",
+			input:    "a\r\nb\nc\rd",
+			popCount: 6,
+			expected: "a\nb\nc\nd",
+		},
+		{
+			name:     "backslash not followed by newline",
+			input:    "a\\b\\c",
+			popCount: 4,
+			expected: "a\\b\\c",
+		},
+		{
+			name:     "backslash at end of string",
+			input:    "abc\\",
+			popCount: 3,
+			expected: "abc\\",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      scanner.Mark()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			scanner.Mark()
 
-      for i := 0; i < tt.popCount; i++ {
-        scanner.Pop()
-      }
+			for i := 0; i < tt.popCount; i++ {
+				scanner.Pop()
+			}
 
-      result := scanner.SliceIncl()
-      if result != tt.expected {
-        t.Errorf("expected %q, got %q", tt.expected, result)
-      }
-    })
-  }
+			result := scanner.SliceInc()
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
+	}
 }
 
 func TestScannerSliceInclAtEOF(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    expected string
-  }{
-    {
-      name:     "empty string",
-      input:    "",
-      expected: "",
-    },
-    {
-      name:     "single character",
-      input:    "a",
-      expected: "a",
-    },
-    {
-      name:     "multiple characters",
-      input:    "abc",
-      expected: "abc",
-    },
-    {
-      name:     "with line breaks",
-      input:    "a\nb",
-      expected: "a\nb",
-    },
-    {
-      name:     "with escaped breaks",
-      input:    "a\\\nb",
-      expected: "ab",
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "single character",
+			input:    "a",
+			expected: "a",
+		},
+		{
+			name:     "multiple characters",
+			input:    "abc",
+			expected: "abc",
+		},
+		{
+			name:     "with line breaks",
+			input:    "a\nb",
+			expected: "a\nb",
+		},
+		{
+			name:     "with escaped breaks",
+			input:    "a\\\nb",
+			expected: "ab",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      scanner.Mark()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			scanner.Mark()
 
-      // Advance to EOF
-      for !scanner.IsEOF() {
-        scanner.Pop()
-      }
+			// Advance to EOF
+			for !scanner.IsEOF() {
+				scanner.Pop()
+			}
 
-      result := scanner.SliceIncl()
-      if result != tt.expected {
-        t.Errorf("expected %q, got %q", tt.expected, result)
-      }
-    })
-  }
+			result := scanner.SliceInc()
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
+	}
 }
 
 func TestScannerSliceInclWithoutMark(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    popCount int
-    expected string
-  }{
-    {
-      name:     "from start",
-      input:    "abc",
-      popCount: 2,
-      expected: "abc",
-    },
-    {
-      name:     "UTF-8 from start",
-      input:    "αβγ",
-      popCount: 2,
-      expected: "αβγ",
-    },
-    {
-      name:     "with normalization from start",
-      input:    "a\r\nb",
-      popCount: 2,
-      expected: "a\nb",
-    },
-    {
-      name:     "with escaped breaks from start",
-      input:    "a\\\nb",
-      popCount: 1,
-      expected: "ab",
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		popCount int
+		expected string
+	}{
+		{
+			name:     "from start",
+			input:    "abc",
+			popCount: 2,
+			expected: "abc",
+		},
+		{
+			name:     "UTF-8 from start",
+			input:    "αβγ",
+			popCount: 2,
+			expected: "αβγ",
+		},
+		{
+			name:     "with normalization from start",
+			input:    "a\r\nb",
+			popCount: 2,
+			expected: "a\nb",
+		},
+		{
+			name:     "with escaped breaks from start",
+			input:    "a\\\nb",
+			popCount: 1,
+			expected: "ab",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      // No explicit Mark() call - should use initial position
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			// No explicit Mark() call - should use initial position
 
-      for i := 0; i < tt.popCount; i++ {
-        scanner.Pop()
-      }
+			for i := 0; i < tt.popCount; i++ {
+				scanner.Pop()
+			}
 
-      result := scanner.SliceIncl()
-      if result != tt.expected {
-        t.Errorf("expected %q, got %q", tt.expected, result)
-      }
-    })
-  }
+			result := scanner.SliceInc()
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
+	}
 }
 
 func TestScannerSliceInclEdgeCases(t *testing.T) {
-  tests := []struct {
-    name     string
-    input    string
-    setup    func(*Scanner)
-    expected string
-  }{
-    {
-      name:  "mark at same position as current",
-      input: "abc",
-      setup: func(s *Scanner) {
-        s.Pop()
-        s.Mark()
-      },
-      expected: "b",
-    },
-    {
-      name:  "multiple marks",
-      input: "abcde",
-      setup: func(s *Scanner) {
-        s.Mark()
-        s.Pop()
-        s.Mark()
-        s.Pop()
-      },
-      expected: "bc",
-    },
-    {
-      name:  "mark after EOF",
-      input: "a",
-      setup: func(s *Scanner) {
-        s.Pop()
-        s.Mark()
-      },
-      expected: "",
-    },
-    {
-      name:  "slice at mark position",
-      input: "abc",
-      setup: func(s *Scanner) {
-        s.Pop()
-        s.Mark()
-        // Don't advance further
-      },
-      expected: "b",
-    },
-  }
+	tests := []struct {
+		name     string
+		input    string
+		setup    func(*Scanner)
+		expected string
+	}{
+		{
+			name:  "mark at same position as current",
+			input: "abc",
+			setup: func(s *Scanner) {
+				s.Pop()
+				s.Mark()
+			},
+			expected: "b",
+		},
+		{
+			name:  "multiple marks",
+			input: "abcde",
+			setup: func(s *Scanner) {
+				s.Mark()
+				s.Pop()
+				s.Mark()
+				s.Pop()
+			},
+			expected: "bc",
+		},
+		{
+			name:  "mark after EOF",
+			input: "a",
+			setup: func(s *Scanner) {
+				s.Pop()
+				s.Mark()
+			},
+			expected: "",
+		},
+		{
+			name:  "slice at mark position",
+			input: "abc",
+			setup: func(s *Scanner) {
+				s.Pop()
+				s.Mark()
+				// Don't advance further
+			},
+			expected: "b",
+		},
+	}
 
-  for _, tt := range tests {
-    t.Run(tt.name, func(t *testing.T) {
-      scanner := NewScanner(tt.input)
-      tt.setup(scanner)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			scanner := NewScanner(tt.input)
+			tt.setup(scanner)
 
-      result := scanner.SliceIncl()
-      if result != tt.expected {
-        t.Errorf("expected %q, got %q", tt.expected, result)
-      }
-    })
-  }
+			result := scanner.SliceInc()
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
+			}
+		})
+	}
 }
 
 func TestStream(t *testing.T) {
@@ -3093,52 +3091,52 @@ func TestStream(t *testing.T) {
 			name:  "simple ASCII",
 			input: "abc",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
-				{Rune: 'c', Pos: TextPosition{Idx: 2, Line: 1, Col: 3}, End: TextPosition{Idx: 3, Line: 1, Col: 4}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
+				{Rune: 'c', Pos: TextPosition{Offset: 2, Line: 1, Col: 3}, End: TextPosition{Offset: 3, Line: 1, Col: 4}},
 			},
 		},
 		{
 			name:  "UTF-8 characters",
 			input: "αβ",
 			expected: []RuneSpan{
-				{Rune: 'α', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 2, Line: 1, Col: 2}},
-				{Rune: 'β', Pos: TextPosition{Idx: 2, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 1, Col: 3}},
+				{Rune: 'α', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 2, Line: 1, Col: 2}},
+				{Rune: 'β', Pos: TextPosition{Offset: 2, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 1, Col: 3}},
 			},
 		},
 		{
 			name:  "line breaks",
 			input: "a\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 2, Line: 2, Col: 1}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 2, Line: 2, Col: 1}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "CR normalization",
 			input: "a\rb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 2, Line: 2, Col: 1}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 2, Line: 2, Col: 1}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "CRLF normalization",
 			input: "a\r\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 3, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 3, Line: 2, Col: 1}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 3, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 3, Line: 2, Col: 1}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "escaped line break",
 			input: "a\\\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
 			},
 		},
 	}
@@ -3318,52 +3316,52 @@ func TestForEach(t *testing.T) {
 			name:  "simple ASCII",
 			input: "abc",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
-				{Rune: 'c', Pos: TextPosition{Idx: 2, Line: 1, Col: 3}, End: TextPosition{Idx: 3, Line: 1, Col: 4}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
+				{Rune: 'c', Pos: TextPosition{Offset: 2, Line: 1, Col: 3}, End: TextPosition{Offset: 3, Line: 1, Col: 4}},
 			},
 		},
 		{
 			name:  "UTF-8 characters",
 			input: "αβ",
 			expected: []RuneSpan{
-				{Rune: 'α', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 2, Line: 1, Col: 2}},
-				{Rune: 'β', Pos: TextPosition{Idx: 2, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 1, Col: 3}},
+				{Rune: 'α', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 2, Line: 1, Col: 2}},
+				{Rune: 'β', Pos: TextPosition{Offset: 2, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 1, Col: 3}},
 			},
 		},
 		{
 			name:  "line breaks",
 			input: "a\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 2, Line: 2, Col: 1}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 2, Line: 2, Col: 1}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "CR normalization",
 			input: "a\rb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 2, Line: 2, Col: 1}, End: TextPosition{Idx: 3, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 2, Line: 2, Col: 1}, End: TextPosition{Offset: 3, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "CRLF normalization",
 			input: "a\r\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 3, Line: 2, Col: 1}},
-				{Rune: 'b', Pos: TextPosition{Idx: 3, Line: 2, Col: 1}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 3, Line: 2, Col: 1}},
+				{Rune: 'b', Pos: TextPosition{Offset: 3, Line: 2, Col: 1}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
 			},
 		},
 		{
 			name:  "escaped line break",
 			input: "a\\\nb",
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 4, Line: 2, Col: 2}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 4, Line: 2, Col: 2}},
 			},
 		},
 	}
@@ -3403,8 +3401,8 @@ func TestForEachEarlyTermination(t *testing.T) {
 			input:  "abcdef",
 			stopAt: 'b',
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
 			},
 		},
 		{
@@ -3412,7 +3410,7 @@ func TestForEachEarlyTermination(t *testing.T) {
 			input:  "hello",
 			stopAt: 'h',
 			expected: []RuneSpan{
-				{Rune: 'h', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
+				{Rune: 'h', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
 			},
 		},
 		{
@@ -3420,8 +3418,8 @@ func TestForEachEarlyTermination(t *testing.T) {
 			input:  "a\nb\nc",
 			stopAt: '\n',
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: '\n', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 2, Col: 1}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: '\n', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 2, Col: 1}},
 			},
 		},
 		{
@@ -3429,8 +3427,8 @@ func TestForEachEarlyTermination(t *testing.T) {
 			input:  "aβγ",
 			stopAt: 'β',
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'β', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 3, Line: 1, Col: 3}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'β', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 3, Line: 1, Col: 3}},
 			},
 		},
 		{
@@ -3438,9 +3436,9 @@ func TestForEachEarlyTermination(t *testing.T) {
 			input:  "abc",
 			stopAt: 'x',
 			expected: []RuneSpan{
-				{Rune: 'a', Pos: TextPosition{Idx: 0, Line: 1, Col: 1}, End: TextPosition{Idx: 1, Line: 1, Col: 2}},
-				{Rune: 'b', Pos: TextPosition{Idx: 1, Line: 1, Col: 2}, End: TextPosition{Idx: 2, Line: 1, Col: 3}},
-				{Rune: 'c', Pos: TextPosition{Idx: 2, Line: 1, Col: 3}, End: TextPosition{Idx: 3, Line: 1, Col: 4}},
+				{Rune: 'a', Pos: TextPosition{Offset: 0, Line: 1, Col: 1}, End: TextPosition{Offset: 1, Line: 1, Col: 2}},
+				{Rune: 'b', Pos: TextPosition{Offset: 1, Line: 1, Col: 2}, End: TextPosition{Offset: 2, Line: 1, Col: 3}},
+				{Rune: 'c', Pos: TextPosition{Offset: 2, Line: 1, Col: 3}, End: TextPosition{Offset: 3, Line: 1, Col: 4}},
 			},
 		},
 	}
@@ -3738,7 +3736,7 @@ func TestScannerText(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			scanner := NewScanner(tt.input)
 			result := scanner.Text()
-			
+
 			if result != tt.expected {
 				t.Errorf("Text() = %q, expected %q", result, tt.expected)
 			}
@@ -3749,16 +3747,16 @@ func TestScannerText(t *testing.T) {
 func TestScannerTextImmutable(t *testing.T) {
 	originalText := "hello world"
 	scanner := NewScanner(originalText)
-	
+
 	// Get text multiple times
 	text1 := scanner.Text()
 	text2 := scanner.Text()
-	
+
 	// Should return the same string each time
 	if text1 != text2 {
 		t.Errorf("Text() returned different values: %q vs %q", text1, text2)
 	}
-	
+
 	if text1 != originalText {
 		t.Errorf("Text() = %q, expected %q", text1, originalText)
 	}
@@ -3767,14 +3765,14 @@ func TestScannerTextImmutable(t *testing.T) {
 func TestScannerTextAfterOperations(t *testing.T) {
 	originalText := "hello world"
 	scanner := NewScanner(originalText)
-	
+
 	// Perform various operations
 	scanner.Pop()
 	scanner.Peek()
 	scanner.Next()
 	scanner.Mark()
-	scanner.SetPos(TextPosition{Idx: 5, Line: 1, Col: 6})
-	
+	scanner.SetPos(TextPosition{Offset: 5, Line: 1, Col: 6})
+
 	// Text should still return the original text
 	result := scanner.Text()
 	if result != originalText {
@@ -3784,9 +3782,9 @@ func TestScannerTextAfterOperations(t *testing.T) {
 
 func TestScannerTextWithNewScannerAt(t *testing.T) {
 	originalText := "hello world"
-	startPos := TextPosition{Idx: 3, Line: 1, Col: 4}
+	startPos := TextPosition{Offset: 3, Line: 1, Col: 4}
 	scanner := NewScannerAt(originalText, startPos)
-	
+
 	result := scanner.Text()
 	if result != originalText {
 		t.Errorf("Text() with NewScannerAt = %q, expected %q", result, originalText)
@@ -3804,19 +3802,19 @@ func TestScannerTextConsistency(t *testing.T) {
 		"escaped\\\nline",
 		strings.Repeat("test", 1000),
 	}
-	
+
 	for _, text := range tests {
 		t.Run("text_"+text[:min(10, len(text))], func(t *testing.T) {
 			scanner1 := NewScanner(text)
-			scanner2 := NewScannerAt(text, TextPosition{Idx: 0, Line: 1, Col: 1})
-			
+			scanner2 := NewScannerAt(text, TextPosition{Offset: 0, Line: 1, Col: 1})
+
 			result1 := scanner1.Text()
 			result2 := scanner2.Text()
-			
+
 			if result1 != result2 {
 				t.Errorf("NewScanner and NewScannerAt returned different text: %q vs %q", result1, result2)
 			}
-			
+
 			if result1 != text {
 				t.Errorf("Text() = %q, expected %q", result1, text)
 			}

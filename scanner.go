@@ -9,14 +9,14 @@ import (
 // EOF represents the synthetic termination rune of a string.
 const EOF rune = -1
 
-// A TextPosition represents a position within a piece of text (string).
+// TextPosition represents a position within a piece of text (string).
 type TextPosition struct {
-	// Idx is the offset in bytes from the beginning of the string.
-	Idx  int
+	// Offset is the offset in bytes from the beginning of the string.
+	Offset int
 	// Line is the line component of the position. Can also be seen as the number of line breaks since the beginning of the string plus one.
 	Line int
 	// Column is the column component of the position. Can also be seen as the number of runes since the last line break plus one.
-	Col  int
+	Col int
 }
 
 // A RuneSpan represents a rune within text, including the matching positional data.
@@ -24,28 +24,28 @@ type RuneSpan struct {
 	// Rune is the rune.
 	Rune rune
 	// Pos is the position the rune is at.
-	Pos  TextPosition
-	// End is the position one after the rune.
-	End  TextPosition
+	Pos TextPosition
+	// End is the position after the rune.
+	End TextPosition
 }
 
-// A Scanner holds the data needed to scanner a piece of text.
+// Scanner scans Unicode text and tracks line/column information.
 type Scanner struct {
 	TextPosition
 	text string
 
 	markedPos          TextPosition
-	isComplexSinceMark bool  // true if can't be directly sliced
+	isComplexSinceMark bool // true if can't be directly sliced
 }
 
 // NewScanner creates a new scanner for the given piece of text initialized to the TextPosition at index 0.
 func NewScanner(text string) *Scanner {
-	return NewScannerAt(text, TextPosition { Idx: 0, Line: 1, Col: 1 })
+	return NewScannerAt(text, TextPosition{Offset: 0, Line: 1, Col: 1})
 }
 
 // NewScannerAt creates a new scanner for the given piece of text initialized to the given starting TextPosition.
 func NewScannerAt(text string, startingPosition TextPosition) *Scanner {
-  return &Scanner{
+	return &Scanner{
 		TextPosition:       startingPosition,
 		text:               text,
 		markedPos:          startingPosition,
@@ -69,13 +69,13 @@ func (scanner *Scanner) SetPos(pos TextPosition) {
 }
 
 // IsEOF returns whether the scanner has moved past the end of the input.
-// Positions before the beginning of the input (negative indices) also count as EOF.
+// Positions before the beginning of the input (negative offset) also count as EOF.
 func (scanner *Scanner) IsEOF() bool {
-  return scanner.Idx < 0 || scanner.Idx >= len(scanner.text)
+	return scanner.Offset < 0 || scanner.Offset >= len(scanner.text)
 }
 
 // Pop returns the rune at the current scanner position and advances the position to the next rune.
-// If the current position is past the end of the text, ScanEOF is returned.
+// If the current position is past the end of the text, EOF is returned.
 // All line breaks (CR, LF and CRLF) are normalized to LF.
 // A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
 func (scanner *Scanner) Pop() rune {
@@ -83,9 +83,9 @@ func (scanner *Scanner) Pop() rune {
 		return EOF
 	}
 
-	r, w := utf8.DecodeRuneInString(scanner.text[scanner.Idx:])
+	r, w := utf8.DecodeRuneInString(scanner.text[scanner.Offset:])
 
-	scanner.Idx += w
+	scanner.Offset += w
 	scanner.Col++
 
 	switch r {
@@ -101,8 +101,8 @@ func (scanner *Scanner) Pop() rune {
 
 		// check if part of CRLF. if so, skip LF too.
 		if !scanner.IsEOF() {
-			if nextR, nextW := utf8.DecodeRuneInString(scanner.text[scanner.Idx:]); nextR == '\n' {
-				scanner.Idx += nextW
+			if nextR, nextW := utf8.DecodeRuneInString(scanner.text[scanner.Offset:]); nextR == '\n' {
+				scanner.Offset += nextW
 			}
 		}
 
@@ -127,7 +127,10 @@ func (scanner *Scanner) Pop() rune {
 	return r
 }
 
-// PopSpan works like Scanner.Pop but returns the corresponding RuneSpan instead of just the plain rune.
+// PopSpan returns the RuneSpan at the current scanner position and advances the position to the next rune.
+// If the current position is past the end of the text, EOF is returned.
+// All line breaks (CR, LF and CRLF) are normalized to LF.
+// A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
 func (scanner *Scanner) PopSpan() RuneSpan {
 	startPos := scanner.TextPosition
 	r := scanner.Pop()
@@ -139,7 +142,7 @@ func (scanner *Scanner) PopSpan() RuneSpan {
 }
 
 // Peek returns the rune at the current scanner position without advancing.
-// If the current position is past the end of the text, ScanEOF is returned.
+// If the current position is past the end of the text, EOF is returned.
 // All line breaks (CR, LF and CRLF) are normalized to LF.
 // A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
 func (scanner *Scanner) Peek() rune {
@@ -149,7 +152,10 @@ func (scanner *Scanner) Peek() rune {
 	return r
 }
 
-// PeekSpan works like Scanner.Peek but returns the corresponding RuneSpan instead of just the plain rune.
+// PeekSpan returns the RuneSpan at the current scanner position without advancing.
+// If the current position is past the end of the text, EOF is returned.
+// All line breaks (CR, LF and CRLF) are normalized to LF.
+// A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
 func (scanner *Scanner) PeekSpan() RuneSpan {
 	span := scanner.PopSpan()
 	scanner.TextPosition = span.Pos
@@ -157,7 +163,7 @@ func (scanner *Scanner) PeekSpan() RuneSpan {
 }
 
 // Next consumes the rune at the current scanner position and returns the next rune.
-// If the current position is past the end of the text, ScanEOF is returned.
+// If the current position is past the end of the text, EOF is returned.
 // All line breaks (CR, LF and CRLF) are normalized to LF.
 // A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
 func (scanner *Scanner) Next() rune {
@@ -165,7 +171,10 @@ func (scanner *Scanner) Next() rune {
 	return scanner.Peek()
 }
 
-// NextSpan works like Scanner.Next but returns the corresponding RuneSpan instead of just the plain rune.
+// NextSpan consumes the RuneSpan at the current scanner position and returns the next rune.
+// If the current position is past the end of the text, EOF is returned.
+// All line breaks (CR, LF and CRLF) are normalized to LF.
+// A backslash followed by a line break is skipped and the first rune of the next line is returned instead.
 func (scanner *Scanner) NextSpan() RuneSpan {
 	scanner.Pop()
 	return scanner.PeekSpan()
@@ -179,16 +188,16 @@ func (scanner *Scanner) Mark() {
 
 // Marked returns the TextPosition that was last marked using Scanner.Mark
 func (scanner *Scanner) Marked() TextPosition {
-  return scanner.markedPos
+	return scanner.markedPos
 }
 
 // Slice returns the string slice from the last rune marked with Scanner.Mark (inclusive) to the current scanner position (exclusive).
 func (scanner *Scanner) Slice() string {
-  if scanner.markedPos.Idx >= len(scanner.text) {
-    return ""
-  }
+	if scanner.markedPos.Offset >= len(scanner.text) {
+		return ""
+	}
 
-	slice := scanner.text[scanner.markedPos.Idx:scanner.Idx]
+	slice := scanner.text[scanner.markedPos.Offset:scanner.Offset]
 
 	if scanner.isComplexSinceMark {
 		slice = strings.ReplaceAll(slice, "\r\n", "\n")
@@ -199,18 +208,18 @@ func (scanner *Scanner) Slice() string {
 	return slice
 }
 
-// SliceIncl returns the string slice from the last rune marked with Scanner.Mark (inclusive) to the current scanner position (inclusive).
-func (scanner *Scanner) SliceIncl() string {
-  if scanner.markedPos.Idx >= len(scanner.text) {
-    return ""
-  }
+// SliceInc returns the string slice from the last rune marked with Scanner.Mark (inclusive) to the current scanner position (inclusive).
+func (scanner *Scanner) SliceInc() string {
+	if scanner.markedPos.Offset >= len(scanner.text) {
+		return ""
+	}
 
-  savedPos := scanner.TextPosition
+	savedPos := scanner.TextPosition
 	scanner.Pop()
-  endIdx := scanner.TextPosition.Idx
-	scanner.TextPosition = savedPos  
+	endIdx := scanner.TextPosition.Offset
+	scanner.TextPosition = savedPos
 
-	slice := scanner.text[scanner.markedPos.Idx : endIdx]
+	slice := scanner.text[scanner.markedPos.Offset:endIdx]
 
 	if scanner.isComplexSinceMark {
 		slice = strings.ReplaceAll(slice, "\r\n", "\n")
@@ -223,6 +232,7 @@ func (scanner *Scanner) SliceIncl() string {
 
 // Stream returns a channel of RuneSpans that are lazily created for the given piece of text.
 // The same skipping rules as for Scanner.Pop are applied.
+// The use of a channel may add allocation overhead, prefer manual iteration for performance critical applications.
 func Stream(text string) <-chan RuneSpan {
 	ch := make(chan RuneSpan)
 	scanner := NewScanner(text)
